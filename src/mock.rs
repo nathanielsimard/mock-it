@@ -1,92 +1,33 @@
-use return_value::ReturnValue;
 use std::rc::Rc;
 use std::cell::RefCell;
+use output::Output;
+use output::OutputHandler;
 
-pub struct Mock<I, R> {
-    called_with: Rc<RefCell<Vec<(I, ReturnValueRef<R>)>>>,
+pub struct Mock<I, O> {
+    called_with: Rc<RefCell<Vec<(I, Output<O>)>>>,
 }
 
-impl<I, R> Clone for Mock<I, R> {
-    fn clone(&self) -> Mock<I, R> {
+impl<I, O> Clone for Mock<I, O> {
+    fn clone(&self) -> Mock<I, O> {
         Mock {
             called_with: self.called_with.clone(),
         }
     }
 }
 
-#[derive(Clone)]
-pub struct ReturnValueRef<R> {
-    value: Rc<RefCell<ReturnValue<R>>>,
-}
-
-pub struct Builder<R> {
-    value: Option<ReturnValueRef<R>>,
-}
-
-impl<R> Builder<R> {
-    fn new(value: Option<ReturnValueRef<R>>) -> Builder<R> {
-        Builder { value: value }
-    }
-}
-
-impl<R> Builder<R> {
-    pub fn return_value_with_default(&self, default: R) -> R {
-        if let Some(ref value) = self.value {
-            return value.return_value(default);
-        }
-        default
-    }
-}
-impl<R: Clone> Builder<R> {
-    pub fn return_clonable_with_default(&self, default: R) -> R {
-        if let Some(ref value) = self.value {
-            return value.return_value_cloned(default);
-        }
-        default
-    }
-}
-
-impl<R: Clone> ReturnValueRef<R> {
-    pub fn will_return_clone_of(&self, value: R) {
-        let mut return_value = self.value.borrow_mut();
-        return_value.will_return_clone_of(value);
-    }
-
-    pub fn return_value_cloned(&self, default: R) -> R {
-        let return_value = self.value.borrow();
-        return_value.return_value_cloned(default)
-    }
-}
-
-impl<R> ReturnValueRef<R> {
-    fn new(value: Rc<RefCell<ReturnValue<R>>>) -> ReturnValueRef<R> {
-        ReturnValueRef { value: value }
-    }
-
-    pub fn will_return(&self, factory: fn() -> R) {
-        let mut return_value = self.value.borrow_mut();
-        return_value.will_return(factory);
-    }
-
-    pub fn return_value(&self, default: R) -> R {
-        let return_value = self.value.borrow();
-        return_value.return_value(default)
-    }
-}
-
-impl<I: PartialEq, R> Mock<I, R> {
-    pub fn new() -> Mock<I, R> {
+impl<I: PartialEq, O> Mock<I, O> {
+    pub fn new() -> Mock<I, O> {
         Mock {
             called_with: Rc::new(RefCell::new(Vec::new())),
         }
     }
 
-    pub fn given(&self, input: I) -> ReturnValueRef<R> {
-        let return_value = Rc::new(RefCell::new(ReturnValue::new()));
+    pub fn given(&self, input: I) -> Output<O> {
+        let return_value = Rc::new(RefCell::new(None));
         self.called_with
             .borrow_mut()
-            .push((input, ReturnValueRef::new(return_value.clone())));
-        ReturnValueRef::new(return_value)
+            .push((input, Output::new(return_value.clone())));
+        Output::new(return_value)
     }
 
     pub fn was_called_with(&self, input: I) -> bool {
@@ -99,15 +40,15 @@ impl<I: PartialEq, R> Mock<I, R> {
     }
 }
 
-impl<I: PartialEq, R: Clone> Mock<I, R> {
-    pub fn called_with(&self, input: I) -> Builder<R> {
+impl<I: PartialEq, O: Clone> Mock<I, O> {
+    pub fn called_with(&self, input: I) -> OutputHandler<O> {
         for value in &*self.called_with.borrow() {
             if value.0 == input {
-                return Builder::new(Some(value.1.clone()));
+                return OutputHandler::new(Some(value.1.clone()));
             }
         }
 
-        return Builder::new(None);
+        return OutputHandler::new(None);
     }
 }
 
@@ -135,16 +76,16 @@ mod test {
         fn int_to_string(&self, input: i64) -> String {
             self.int_to_string
                 .called_with(input)
-                .return_clonable_with_default(String::new())
+                .return_value_with_default(String::new())
         }
     }
 
     #[test]
     fn it_work() {
-        let mut mock = MyMock::new();
+        let mock = MyMock::new();
         mock.int_to_string
             .given(65)
-            .will_return_clone_of(String::from("Something"));
+            .will_return(String::from("Something"));
         let a_trait = Box::new(mock);
 
         assert_eq!("Something", a_trait.int_to_string(65));

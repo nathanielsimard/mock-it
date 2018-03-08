@@ -1,2 +1,2 @@
-pub mod return_value;
+mod output;
 pub mod mock;

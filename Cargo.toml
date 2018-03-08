@@ -1,0 +1,6 @@
+[package]
+name = "mock_it"
+version = "0.1.0"
+authors = ["nathanielsimard <nathaniel.simard.1@ulaval.ca>"]
+
+[dependencies]

@@ -2,9 +2,16 @@ use return_value::ReturnValue;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-#[derive(Clone)]
 pub struct Mock<I, R> {
     called_with: Rc<RefCell<Vec<(I, ReturnValueRef<R>)>>>,
+}
+
+impl<I, R> Clone for Mock<I, R> {
+    fn clone(&self) -> Mock<I, R> {
+        Mock {
+            called_with: self.called_with.clone(),
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -12,7 +19,6 @@ pub struct ReturnValueRef<R> {
     value: Rc<RefCell<ReturnValue<R>>>,
 }
 
-#[derive(Clone)]
 pub struct Builder<R> {
     value: Option<ReturnValueRef<R>>,
 }

@@ -1,7 +1,7 @@
 extern crate mock_it;
 use mock_it::mock::Mock;
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq)]
 struct Person {
     name: String,
     age: i64,
@@ -60,7 +60,7 @@ impl Repository for RepositoryMock {
     fn create(&self, person: Person) -> Option<String> {
         self.create
             .called_with(person)
-            .return_clonable_with_default(None)
+            .return_value_with_default(None)
     }
 }
 
@@ -68,10 +68,12 @@ fn main() {
     let a_valid_person = Person::new("John", 27);
     let an_invalid_person = Person::new("John", 0);
     let repository_mock = RepositoryMock::new();
+
     repository_mock
         .create
-        .given(a_valid_person.clone())
-        .return_value_cloned(None);
+        .given(Person::new("John", 27))
+        .will_return(|| -> Option<String> { None });
+
     let service = Service::new(Box::new(repository_mock.clone()));
 
     let result = service.create("John", 27);

@@ -2,8 +2,9 @@ use return_value::ReturnValue;
 use std::rc::Rc;
 use std::cell::RefCell;
 
+#[derive(Clone)]
 pub struct Mock<I, R> {
-    called_with: Option<(I, ReturnValueRef<R>)>,
+    called_with: Rc<RefCell<Vec<(I, ReturnValueRef<R>)>>>,
 }
 
 #[derive(Clone)]
@@ -11,15 +12,14 @@ pub struct ReturnValueRef<R> {
     value: Rc<RefCell<ReturnValue<R>>>,
 }
 
+#[derive(Clone)]
 pub struct Builder<R> {
     value: Option<ReturnValueRef<R>>,
 }
 
 impl<R> Builder<R> {
     fn new(value: Option<ReturnValueRef<R>>) -> Builder<R> {
-        Builder {
-            value: value,
-        }
+        Builder { value: value }
     }
 }
 
@@ -70,19 +70,32 @@ impl<R> ReturnValueRef<R> {
 
 impl<I: PartialEq, R> Mock<I, R> {
     pub fn new() -> Mock<I, R> {
-        Mock { called_with: None }
+        Mock {
+            called_with: Rc::new(RefCell::new(Vec::new())),
+        }
     }
 
-    pub fn given(&mut self, input: I) -> ReturnValueRef<R> {
+    pub fn given(&self, input: I) -> ReturnValueRef<R> {
         let return_value = Rc::new(RefCell::new(ReturnValue::new()));
-        self.called_with = Some((input, ReturnValueRef::new(return_value.clone())));
+        self.called_with
+            .borrow_mut()
+            .push((input, ReturnValueRef::new(return_value.clone())));
         ReturnValueRef::new(return_value)
+    }
+
+    pub fn was_called_with(&self, input: I) -> bool {
+        for value in &*self.called_with.borrow() {
+            if value.0 == input {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
 impl<I: PartialEq, R: Clone> Mock<I, R> {
     pub fn called_with(&self, input: I) -> Builder<R> {
-        if let Some(ref value) = self.called_with {
+        for value in &*self.called_with.borrow() {
             if value.0 == input {
                 return Builder::new(Some(value.1.clone()));
             }

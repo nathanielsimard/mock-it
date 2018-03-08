@@ -31,14 +31,18 @@ impl Service {
         }
     }
 
-    fn create(&self, name: &str, age: i64) -> Result<(), String> {
+    fn create(&self, name: &str, age: i64) -> Result<String, String> {
         if age <= 0 {
             Err("Age invalid".to_string())
         } else if name == String::from("") {
             Err("Empty name".to_string())
         } else {
-            self.repository.create(Person::new(&name, age));
-            Ok(())
+            let name = self.repository.create(Person::new(&name, age));
+            if let Some(name) =  name {
+                Ok(name)
+            } else {
+                Err("Unable to persist".to_string())
+            }
         }
     }
 }
@@ -72,13 +76,13 @@ fn main() {
     repository_mock
         .create
         .given(Person::new("John", 27))
-        .will_return(|| -> Option<String> { None });
+        .will_return(|| -> Option<String> { Some(String::from("John")) });
 
     let service = Service::new(Box::new(repository_mock.clone()));
 
     let result = service.create("John", 27);
 
-    assert_eq!(Ok(()), result);
+    assert_eq!(Ok(String::from("John")), result);
     assert!(repository_mock.create.was_called_with(a_valid_person));
-    assert!(repository_mock.create.was_called_with(an_invalid_person));
+    assert!(!repository_mock.create.was_called_with(an_invalid_person));
 }

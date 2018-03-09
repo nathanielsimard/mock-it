@@ -1,10 +1,11 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use output::Output;
-use output::OutputHandler;
+use rule::Rule;
 
 pub struct Mock<I, O> {
-    calls: Rc<RefCell<Vec<(I, Output<O>)>>>,
+    calls: Rc<RefCell<Vec<I>>>,
+    rules: Rc<RefCell<Vec<Rule<I, Output<O>>>>>,
     default: O,
 }
 
@@ -12,6 +13,7 @@ impl<I, O: Clone> Clone for Mock<I, O> {
     fn clone(&self) -> Mock<I, O> {
         Mock {
             calls: self.calls.clone(),
+            rules: self.rules.clone(),
             default: self.default.clone(),
         }
     }
@@ -21,21 +23,22 @@ impl<I: PartialEq, O> Mock<I, O> {
     pub fn new(default: O) -> Mock<I, O> {
         Mock {
             calls: Rc::new(RefCell::new(Vec::new())),
+            rules: Rc::new(RefCell::new(Vec::new())),
             default: default,
         }
     }
 
     pub fn given(&self, input: I) -> Output<O> {
         let return_value = Rc::new(RefCell::new(None));
-        self.calls
+        self.rules
             .borrow_mut()
-            .push((input, Output::new(return_value.clone())));
+            .push(Rule::new(input, Output::new(return_value.clone())));
         Output::new(return_value)
     }
 
     pub fn was_called_with(&self, input: I) -> bool {
         for value in &*self.calls.borrow() {
-            if value.0 == input {
+            if value == &input {
                 return true;
             }
         }
@@ -45,13 +48,13 @@ impl<I: PartialEq, O> Mock<I, O> {
 
 impl<I: PartialEq, O: Clone> Mock<I, O> {
     pub fn called(&self, input: I) -> O {
-        for value in &*self.calls.borrow() {
-            if value.0 == input {
-                return OutputHandler::new(Some(value.1.clone())).default(self.default.clone());
+        for value in &*self.rules.borrow() {
+            if &value.input == &input {
+                return value.output.return_value(&self.default);
             }
         }
 
-        return OutputHandler::new(None).default(self.default.clone());
+        return self.default.clone();
     }
 }
 

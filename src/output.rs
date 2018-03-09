@@ -23,7 +23,7 @@ impl<O> OutputHandler<O> {
 }
 
 impl<O: Clone> OutputHandler<O> {
-    pub fn return_value_with_default(&self, default: O) -> O {
+    pub fn default(&self, default: O) -> O {
         if let Some(ref output) = self.output {
             return output.return_value(default);
         }

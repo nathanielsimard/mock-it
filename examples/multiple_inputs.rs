@@ -12,15 +12,14 @@ struct ValidatorMock {
 impl Validator for ValidatorMock {
     fn validate_credentials(&self, username: &String, password: &String) -> Result<(), String> {
         self.validate_credentials
-            .called_with((username.clone(), password.clone()))
-            .return_value_with_default(Err("Input not found".to_string()))
+            .called((username.clone(), password.clone()))
     }
 }
 
 impl ValidatorMock {
     fn new() -> ValidatorMock {
         ValidatorMock {
-            validate_credentials: Mock::new(),
+            validate_credentials: Mock::new(Err("Input not found".to_string())),
         }
     }
 }

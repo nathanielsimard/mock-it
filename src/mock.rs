@@ -4,34 +4,37 @@ use output::Output;
 use output::OutputHandler;
 
 pub struct Mock<I, O> {
-    called_with: Rc<RefCell<Vec<(I, Output<O>)>>>,
+    calls: Rc<RefCell<Vec<(I, Output<O>)>>>,
+    default: O,
 }
 
-impl<I, O> Clone for Mock<I, O> {
+impl<I, O: Clone> Clone for Mock<I, O> {
     fn clone(&self) -> Mock<I, O> {
         Mock {
-            called_with: self.called_with.clone(),
+            calls: self.calls.clone(),
+            default: self.default.clone(),
         }
     }
 }
 
 impl<I: PartialEq, O> Mock<I, O> {
-    pub fn new() -> Mock<I, O> {
+    pub fn new(default: O) -> Mock<I, O> {
         Mock {
-            called_with: Rc::new(RefCell::new(Vec::new())),
+            calls: Rc::new(RefCell::new(Vec::new())),
+            default: default,
         }
     }
 
     pub fn given(&self, input: I) -> Output<O> {
         let return_value = Rc::new(RefCell::new(None));
-        self.called_with
+        self.calls
             .borrow_mut()
             .push((input, Output::new(return_value.clone())));
         Output::new(return_value)
     }
 
     pub fn was_called_with(&self, input: I) -> bool {
-        for value in &*self.called_with.borrow() {
+        for value in &*self.calls.borrow() {
             if value.0 == input {
                 return true;
             }
@@ -41,14 +44,14 @@ impl<I: PartialEq, O> Mock<I, O> {
 }
 
 impl<I: PartialEq, O: Clone> Mock<I, O> {
-    pub fn called_with(&self, input: I) -> OutputHandler<O> {
-        for value in &*self.called_with.borrow() {
+    pub fn called(&self, input: I) -> O {
+        for value in &*self.calls.borrow() {
             if value.0 == input {
-                return OutputHandler::new(Some(value.1.clone()));
+                return OutputHandler::new(Some(value.1.clone())).default(self.default.clone());
             }
         }
 
-        return OutputHandler::new(None);
+        return OutputHandler::new(None).default(self.default.clone());
     }
 }
 
@@ -67,16 +70,14 @@ mod test {
     impl MyMock {
         fn new() -> MyMock {
             MyMock {
-                int_to_string: Mock::new(),
+                int_to_string: Mock::new(String::new()),
             }
         }
     }
 
     impl ATrait for MyMock {
         fn int_to_string(&self, input: i64) -> String {
-            self.int_to_string
-                .called_with(input)
-                .return_value_with_default(String::new())
+            self.int_to_string.called(input)
         }
     }
 

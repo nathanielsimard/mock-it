@@ -25,16 +25,14 @@ struct HouseFactoryMock {
 impl HouseFactoryMock {
     fn new() -> HouseFactoryMock {
         HouseFactoryMock {
-            create: Mock::new(),
+            create: Mock::new(Err("Mock error".to_string())),
         }
     }
 }
 
 impl HouseFactory for HouseFactoryMock {
     fn create(&self, specs: Vec<String>) -> Result<House, String> {
-        self.create
-            .called_with(Val(specs.clone()))
-            .return_value_with_default(Err(format!("No rule when called with {:?}", specs)))
+        self.create.called(Val(specs.clone()))
     }
 }
 

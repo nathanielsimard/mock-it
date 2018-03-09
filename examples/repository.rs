@@ -55,16 +55,14 @@ struct RepositoryMock {
 impl RepositoryMock {
     fn new() -> RepositoryMock {
         RepositoryMock {
-            create: Mock::new(),
+            create: Mock::new(None),
         }
     }
 }
 
 impl Repository for RepositoryMock {
     fn create(&self, person: Person) -> Option<String> {
-        self.create
-            .called_with(person)
-            .return_value_with_default(None)
+        self.create.called(person)
     }
 }
 

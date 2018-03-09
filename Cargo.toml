@@ -4,3 +4,6 @@ version = "0.1.0"
 authors = ["nathanielsimard <nathaniel.simard.1@ulaval.ca>"]
 
 [dependencies]
+
+[dev-dependencies]
+table-test = "0.2.0"

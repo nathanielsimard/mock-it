@@ -1,7 +1,7 @@
 extern crate mock_it;
 use mock_it::mock::Mock;
-use mock_it::input::Input;
-use mock_it::input::Input::*;
+use mock_it::matcher::Matcher;
+use mock_it::matcher::Matcher::*;
 
 #[derive(Debug, PartialEq, Clone)]
 struct House {
@@ -19,7 +19,7 @@ trait HouseFactory {
 }
 
 struct HouseFactoryMock {
-    create: Mock<Input<Vec<String>>, Result<House, String>>,
+    create: Mock<Matcher<Vec<String>>, Result<House, String>>,
 }
 
 impl HouseFactoryMock {

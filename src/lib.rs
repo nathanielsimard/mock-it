@@ -1,4 +1,4 @@
 mod rule;
 mod output;
-pub mod input;
+pub mod matcher;
 pub mod mock;

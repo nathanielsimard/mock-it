@@ -1,5 +1,7 @@
 # Mock It
 [![Build Status](https://travis-ci.org/nathanielsimard/mock_it.svg?branch=master)](https://travis-ci.org/nathanielsimard/mock_it)
+[![codecov.io](https://codecov.io/gh/nathanielsimard/mock_it/coverage.svg?branch=master)](https://codecov.io/gh/nathanielsimard/mock_it)
+
 
 This library aims to make mocking reliable.
 Most mocking libraries in Rust are experimental using code generation with rust nightly.

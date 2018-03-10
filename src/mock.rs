@@ -1,5 +1,6 @@
 use std::rc::Rc;
 use std::cell::RefCell;
+use output;
 use output::Output;
 use rule::Rule;
 
@@ -50,10 +51,12 @@ impl<I: PartialEq, O: Clone> Mock<I, O> {
     pub fn called(&self, input: I) -> O {
         for value in &*self.rules.borrow() {
             if &value.input == &input {
-                return value.output.return_value(&self.default);
+                self.calls.borrow_mut().push(input);
+                return output::value_of(value.output.clone(), &self.default);
             }
         }
 
+        self.calls.borrow_mut().push(input);
         return self.default.clone();
     }
 }

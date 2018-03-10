@@ -1,5 +1,5 @@
 extern crate mock_it;
-use mock_it::mock::Mock;
+use mock_it::Mock;
 
 trait Validator {
     fn validate_credentials(&self, username: &String, password: &String) -> Result<(), String>;

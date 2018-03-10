@@ -1,7 +1,7 @@
 extern crate mock_it;
-use mock_it::mock::Mock;
-use mock_it::matcher::Matcher;
-use mock_it::matcher::Matcher::*;
+use mock_it::Mock;
+use mock_it::Matcher;
+use mock_it::Matcher::*;
 
 #[derive(Debug, PartialEq, Clone)]
 struct House {

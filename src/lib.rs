@@ -1,4 +1,7 @@
+pub use mock::*;
+pub use matcher::*;
+
 mod rule;
 mod output;
-pub mod matcher;
-pub mod mock;
+mod matcher;
+mod mock;

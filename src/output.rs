@@ -16,11 +16,11 @@ impl<O: Clone> Output<O> {
     pub fn will_return(&self, value: O) {
         *self.value.borrow_mut() = Some(value);
     }
+}
 
-    pub fn return_value(&self, default: &O) -> O {
-        match *self.value.borrow() {
-            Some(ref value) => value.clone(),
-            None => default.clone(),
-        }
+pub fn value_of<O: Clone>(output: Output<O>, default: &O) -> O {
+    match *output.value.borrow() {
+        Some(ref value) => value.clone(),
+        None => default.clone(),
     }
 }

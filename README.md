@@ -6,3 +6,77 @@ It is not the most robust way of mocking yet.
 This is where `Mock_it` tries to fill the gap. 
 You will have to implement the trait you are willing to mock, but without coding any logic.
 This way you can be sure your mock works as expected without having to maintain it much.
+
+# Usage
+
+First you need to have a `trait` that you want to mock. Let's take a Factory that creates persons.
+
+```rust
+trait PersonFactory {
+    fn create(&self, name: String, surname: String) -> Result<Person, String>;
+}
+```
+
+Each function of the `trait` will need one mock.
+
+```rust
+#[derive(Clone)]
+struct PersonFactoryMock {
+    create: Mock<(String, String), Result<Person, String>>,
+}
+```
+
+In this case, our mock has one field `create` that will be used for mocking the function of the same name.
+Note that the mock can be cloned without losing his internal state because it uses inner mutability with ref counting.
+Now we can implement the `trait`.
+
+```rust
+impl PersonFactory for PersonFactoryMock {
+    fn create(&self, name: String, surname: String) -> Result<Person, String> {
+        self.create.called((name.clone(), surname.clone()))
+    }
+}
+```
+
+The only thing to do here is to passe the inputs in a tuple to the function `called`.
+To facilitate the use of the mock we can create a `new` function.
+
+```rust
+impl PersonFactoryMock {
+    fn new() -> PersonFactoryMock {
+        PersonFactoryMock {
+            create: Mock::new(Err("Default value".to_string())),
+        }
+    }
+}
+```
+
+We can see that we need to passe a value into the constructor.
+This is the default value returned by the function if no rule is satisfy.
+Now we need to create the mock and add some rules.
+
+```rust
+let person_factory_mock = PersonFactoryMock::new();
+person_factory_mock
+    .create
+    .given((String::from("MyName"), String::from("MySurname")))
+    .will_return(Ok(Person::new(String::from("MyName"), String::from("MySurname"))));
+
+let person_factory = Box::new(person_factory_mock.clone());
+
+let default_value = person_factory.create(String::from("YourName"), String::from("YourSurname"));
+let me = person_factory.create(String::from("MyName"), String::from("MySurname"));
+```
+
+The first call will return the default value which is an error and the second call will return the person with my name and surname.
+If we want to do assertion, it is also possible.
+
+```rust
+assert!(
+    person_factory_mock
+        .create
+        .was_called_with((String::from("MyName"), String::from("MySurname")))
+);
+```
+
+That's it ! If you want more examples, just check [here](examples).

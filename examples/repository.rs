@@ -1,5 +1,5 @@
 extern crate mock_it;
-use mock_it::mock::Mock;
+use mock_it::Mock;
 
 #[derive(PartialEq, Clone)]
 struct Person {
@@ -17,7 +17,7 @@ impl Person {
 }
 
 trait Repository {
-    fn create(&self, person: Person) -> Option<String>;
+    fn persist(&self, person: Person) -> Option<String>;
 }
 
 struct Service {
@@ -31,13 +31,13 @@ impl Service {
         }
     }
 
-    fn create(&self, name: &str, age: i64) -> Result<String, String> {
+    fn persist(&self, name: &str, age: i64) -> Result<String, String> {
         if age <= 0 {
             Err("Age invalid".to_string())
         } else if name == String::from("") {
             Err("Empty name".to_string())
         } else {
-            let name = self.repository.create(Person::new(&name, age));
+            let name = self.repository.persist(Person::new(&name, age));
             if let Some(name) = name {
                 Ok(name)
             } else {
@@ -49,20 +49,20 @@ impl Service {
 
 #[derive(Clone)]
 struct RepositoryMock {
-    create: Mock<Person, Option<String>>,
+    persist: Mock<Person, Option<String>>,
 }
 
 impl RepositoryMock {
     fn new() -> RepositoryMock {
         RepositoryMock {
-            create: Mock::new(None),
+            persist: Mock::new(None),
         }
     }
 }
 
 impl Repository for RepositoryMock {
-    fn create(&self, person: Person) -> Option<String> {
-        self.create.called(person)
+    fn persist(&self, person: Person) -> Option<String> {
+        self.persist.called(person)
     }
 }
 
@@ -71,14 +71,14 @@ fn main() {
     let repository_mock = RepositoryMock::new();
 
     repository_mock
-        .create
+        .persist
         .given(a_valid_person.clone())
         .will_return(Some(a_valid_person.name.clone()));
 
     let service = Service::new(Box::new(repository_mock.clone()));
 
-    let result = service.create(&a_valid_person.name, a_valid_person.age);
+    let result = service.persist(&a_valid_person.name, a_valid_person.age);
 
     assert_eq!(Ok(a_valid_person.name.clone()), result);
-    assert!(repository_mock.create.was_called_with(a_valid_person));
+    assert!(repository_mock.persist.was_called_with(a_valid_person));
 }

@@ -1,0 +1,12 @@
+sudo: required
+
+language: rust
+
+rust:
+  - stable
+
+service:
+  - docker
+
+script:
+  - cargo test

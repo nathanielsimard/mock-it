@@ -33,7 +33,7 @@ mod test {
         let output = Output::new(Rc::new(RefCell::new(default)));
 
         output.will_return(expected);
-        let actual = output.value.borrow().clone();
+        let actual = value_of(output);
 
         assert_eq!(expected, actual);
     }
@@ -42,7 +42,7 @@ mod test {
         let default = 0;
         let output = Output::new(Rc::new(RefCell::new(default)));
 
-        let actual = output.value.borrow().clone();
+        let actual = value_of(output);
 
         assert_eq!(default, actual);
     }

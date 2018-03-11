@@ -67,6 +67,7 @@ mod test {
         fn int_to_string(&self, input: i64) -> String;
     }
 
+    #[derive(Clone)]
     struct MyMock {
         int_to_string: Mock<i64, String>,
     }
@@ -86,14 +87,32 @@ mod test {
     }
 
     #[test]
-    fn it_work() {
+    fn given_mock_with_rules_when_call_it_then_it_should_respect_those_rules() {
         let mock = MyMock::new();
-        mock.int_to_string
-            .given(65)
-            .will_return(String::from("Something"));
+        mock.int_to_string.given(65).will_return(String::from("65"));
+        mock.int_to_string.given(63).will_return(String::from("63"));
+        mock.int_to_string.given(-1).will_return(String::from("-1"));
         let a_trait = Box::new(mock);
 
-        assert_eq!("Something", a_trait.int_to_string(65));
-        assert_ne!("Something", a_trait.int_to_string(64));
+        assert_eq!("65", a_trait.int_to_string(65));
+        assert_eq!("63", a_trait.int_to_string(63));
+        assert_eq!("-1", a_trait.int_to_string(-1));
+        assert_eq!("", a_trait.int_to_string(0));
+    }
+
+    #[test]
+    fn given_mock_called_with_values_when_was_called_with_then_is_true_for_those_values_false_otherwise(
+) {
+        let mock = MyMock::new();
+        let a_trait = Box::new(mock.clone());
+
+        a_trait.int_to_string(65);
+        a_trait.int_to_string(63);
+        a_trait.int_to_string(-1);
+
+        assert!(mock.int_to_string.was_called_with(65));
+        assert!(mock.int_to_string.was_called_with(63));
+        assert!(mock.int_to_string.was_called_with(-1));
+        assert!(!mock.int_to_string.was_called_with(0));
     }
 }

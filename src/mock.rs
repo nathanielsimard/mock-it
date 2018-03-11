@@ -20,7 +20,7 @@ impl<I, O: Clone> Clone for Mock<I, O> {
     }
 }
 
-impl<I: PartialEq, O> Mock<I, O> {
+impl<I: PartialEq, O: Clone> Mock<I, O> {
     pub fn new(default: O) -> Mock<I, O> {
         Mock {
             calls: Rc::new(RefCell::new(Vec::new())),
@@ -30,11 +30,23 @@ impl<I: PartialEq, O> Mock<I, O> {
     }
 
     pub fn given(&self, input: I) -> Output<O> {
-        let return_value = Rc::new(RefCell::new(None));
+        let return_value = Rc::new(RefCell::new(self.default.clone()));
         self.rules
             .borrow_mut()
             .push(Rule::new(input, Output::new(return_value.clone())));
         Output::new(return_value)
+    }
+
+    pub fn called(&self, input: I) -> O {
+        for value in &*self.rules.borrow() {
+            if &value.input == &input {
+                self.calls.borrow_mut().push(input);
+                return output::value_of(value.output.clone());
+            }
+        }
+
+        self.calls.borrow_mut().push(input);
+        return self.default.clone();
     }
 
     pub fn was_called_with(&self, input: I) -> bool {
@@ -44,20 +56,6 @@ impl<I: PartialEq, O> Mock<I, O> {
             }
         }
         return false;
-    }
-}
-
-impl<I: PartialEq, O: Clone> Mock<I, O> {
-    pub fn called(&self, input: I) -> O {
-        for value in &*self.rules.borrow() {
-            if &value.input == &input {
-                self.calls.borrow_mut().push(input);
-                return output::value_of(value.output.clone(), &self.default);
-            }
-        }
-
-        self.calls.borrow_mut().push(input);
-        return self.default.clone();
     }
 }
 

@@ -1,7 +1,7 @@
 # Mock It
 [![Build Status](https://travis-ci.org/nathanielsimard/mock_it.svg?branch=master)](https://travis-ci.org/nathanielsimard/mock_it)
 [![codecov.io](https://codecov.io/gh/nathanielsimard/mock_it/coverage.svg?branch=master)](https://codecov.io/gh/nathanielsimard/mock_it)
-
+[![Current Crates.io Version](https://img.shields.io/crates/v/mock-it.svg)](https://crates.io/crates/mock-it)
 
 This library aims to make mocking reliable.
 Most mocking libraries in Rust are experimental using code generation with rust nightly.
@@ -11,9 +11,23 @@ This is where `Mock_it` tries to fill the gap.
 You will have to implement the trait you are willing to mock, but without coding any logic.
 This way you can be sure your mock works as expected without having to maintain it much.
 
+# Install
+
+Specify this crate as `[dev-dependencies]`.
+
+```toml
+[dev-dependencies]
+mock-it = "0.1.0"
+```
+
+```rust
+#[cfg(test)] // <-- not needed in integration tests
+extern crate mock_it;
+```
+
 # Usage
 
-First you need to have a `trait` that you want to mock. Let's take a Factory that creates persons.
+First, you need to have a `trait` that you want to mock. Let's take a Factory that creates persons.
 
 ```rust
 trait PersonFactory {
@@ -42,7 +56,7 @@ impl PersonFactory for PersonFactoryMock {
 }
 ```
 
-The only thing to do here is to passe the inputs in a tuple to the function `called`.
+The only thing to do here is to pass the inputs in a tuple to the function `called`.
 To facilitate the use of the mock we can create a `new` function.
 
 ```rust
@@ -55,8 +69,8 @@ impl PersonFactoryMock {
 }
 ```
 
-We can see that we need to passe a value into the constructor.
-This is the default value returned by the function if no rule is satisfy.
+We can see that we need to pass a value into the constructor.
+This is the default value returned by the function if no rule is satisfied.
 Now we need to create the mock and add some rules.
 
 ```rust

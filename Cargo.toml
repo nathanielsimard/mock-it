@@ -1,7 +1,11 @@
 [package]
-name = "mock_it"
+name = "mock-it"
 version = "0.1.0"
-authors = ["nathanielsimard <nathaniel.simard.1@ulaval.ca>"]
+authors = ["nathanielsimard <nathaniel.simard@outlook.com>"]
+description = "Make mocking reliable"
+repository = "https://github.com/nathanielsimard/mock-it"
+license = "MIT"
+readme="README.md"
 
 [dependencies]
 

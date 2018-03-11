@@ -45,6 +45,8 @@ struct PersonFactoryMock {
 ```
 
 In this case, our mock has one field `create` that will be used for mocking the function of the same name.
+The mock signature is `Mock<Input, Ouput>`.
+In this case we have two strings as input, so we use a tuple of strings instead.
 Note that the mock can be cloned without losing his internal state because it uses inner mutability with ref counting.
 Now we can implement the `trait`.
 
@@ -56,7 +58,7 @@ impl PersonFactory for PersonFactoryMock {
 }
 ```
 
-The only thing to do here is to pass the inputs in a tuple to the function `called`.
+The only thing to do here is to pass the inputs in a tuple to the function `called` to match the mock signature.
 To facilitate the use of the mock we can create a `new` function.
 
 ```rust

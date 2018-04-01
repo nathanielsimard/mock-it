@@ -1,8 +1,9 @@
-use std::rc::Rc;
-use std::cell::RefCell;
 use output;
 use output::Output;
 use rule::Rule;
+use std::cell::RefCell;
+use std::rc::Rc;
+use validator::*;
 
 pub struct Mock<I, O> {
     calls: Rc<RefCell<Vec<I>>>,
@@ -49,13 +50,13 @@ impl<I: PartialEq, O: Clone> Mock<I, O> {
         return self.default.clone();
     }
 
-    pub fn was_called_with(&self, input: I) -> bool {
+    pub fn was_called_with(&self, input: I) -> Validator<I> {
         for value in &*self.calls.borrow() {
             if value == &input {
-                return true;
+                return Validator::new(self.calls.clone(), true, input);
             }
         }
-        return false;
+        return Validator::new(self.calls.clone(), false, input);
     }
 }
 
@@ -110,9 +111,37 @@ mod test {
         a_trait.int_to_string(63);
         a_trait.int_to_string(-1);
 
-        assert!(mock.int_to_string.was_called_with(65));
-        assert!(mock.int_to_string.was_called_with(63));
-        assert!(mock.int_to_string.was_called_with(-1));
-        assert!(!mock.int_to_string.was_called_with(0));
+        assert!(verify(mock.int_to_string.was_called_with(65)));
+        assert!(verify(mock.int_to_string.was_called_with(63)));
+        assert!(verify(mock.int_to_string.was_called_with(-1)));
+        assert!(!verify(mock.int_to_string.was_called_with(0)));
+    }
+
+    #[test]
+    fn given_mock_called_5_times_when_times_5_then_return_true_false_otherwise() {
+        let mock = MyMock::new();
+        mock.int_to_string.given(65).will_return(String::from("65"));
+        let a_trait = Box::new(mock.clone());
+
+        for _ in 0..5 {
+            a_trait.int_to_string(65);
+        }
+
+        assert_eq!(
+            true,
+            verify(mock.int_to_string.was_called_with(65).times(5))
+        );
+        assert_eq!(
+            false,
+            verify(mock.int_to_string.was_called_with(65).times(4))
+        );
+        assert_eq!(
+            false,
+            verify(mock.int_to_string.was_called_with(65).times(1))
+        );
+        assert_eq!(
+            false,
+            verify(mock.int_to_string.was_called_with(65).times(6))
+        );
     }
 }

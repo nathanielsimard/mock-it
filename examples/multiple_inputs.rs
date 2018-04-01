@@ -1,5 +1,5 @@
 extern crate mock_it;
-use mock_it::Mock;
+use mock_it::*;
 
 trait Validator {
     fn validate_credentials(&self, username: &String, password: &String) -> Result<(), String>;
@@ -63,24 +63,20 @@ fn main() {
         validator.validate_credentials(&valid_username, &valid_password)
     );
 
-    assert!(
-        validator
-            .validate_credentials
-            .was_called_with((valid_username.clone(), valid_password.clone()))
-    );
-    assert!(
-        validator
-            .validate_credentials
-            .was_called_with((valid_username.clone(), invalid_password.clone()))
-    );
-    assert!(
-        validator
-            .validate_credentials
-            .was_called_with((invalid_username.clone(), valid_password.clone()))
-    );
-    assert!(
-        validator
-            .validate_credentials
-            .was_called_with((invalid_username.clone(), invalid_password.clone()))
-    );
+    assert!(verify(validator.validate_credentials.was_called_with((
+        valid_username.clone(),
+        valid_password.clone()
+    ))));
+    assert!(verify(validator.validate_credentials.was_called_with((
+        valid_username.clone(),
+        invalid_password.clone()
+    ))));
+    assert!(verify(validator.validate_credentials.was_called_with((
+        invalid_username.clone(),
+        valid_password.clone()
+    ))));
+    assert!(verify(validator.validate_credentials.was_called_with((
+        invalid_username.clone(),
+        invalid_password.clone()
+    ))));
 }

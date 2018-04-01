@@ -67,20 +67,24 @@ fn main() {
         validator
             .validate_credentials
             .was_called_with((valid_username.clone(), valid_password.clone()))
+            .validate()
     );
     assert!(
         validator
             .validate_credentials
             .was_called_with((valid_username.clone(), invalid_password.clone()))
+            .validate()
     );
     assert!(
         validator
             .validate_credentials
             .was_called_with((invalid_username.clone(), valid_password.clone()))
+            .validate()
     );
     assert!(
         validator
             .validate_credentials
             .was_called_with((invalid_username.clone(), invalid_password.clone()))
+            .validate()
     );
 }

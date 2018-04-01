@@ -1,8 +1,8 @@
-use std::rc::Rc;
-use std::cell::RefCell;
 use output;
 use output::Output;
 use rule::Rule;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 pub struct Mock<I, O> {
     calls: Rc<RefCell<Vec<I>>>,
@@ -49,13 +49,46 @@ impl<I: PartialEq, O: Clone> Mock<I, O> {
         return self.default.clone();
     }
 
-    pub fn was_called_with(&self, input: I) -> bool {
+    pub fn was_called_with(&self, input: I) -> Validator<I> {
         for value in &*self.calls.borrow() {
             if value == &input {
-                return true;
+                return Validator::new(self.calls.clone(), true, input);
             }
         }
-        return false;
+        return Validator::new(self.calls.clone(), false, input);
+    }
+}
+
+pub struct Validator<I> {
+    calls: Rc<RefCell<Vec<I>>>,
+    result: bool,
+    input: I,
+}
+
+impl<I: PartialEq> Validator<I> {
+    fn new(calls: Rc<RefCell<Vec<I>>>, result: bool, input: I) -> Validator<I> {
+        Validator {
+            calls: calls,
+            result: result,
+            input: input,
+        }
+    }
+
+    pub fn times(mut self, times: usize) -> Validator<I> {
+        let mut counter = 0;
+        for value in &*self.calls.borrow() {
+            if value == &self.input {
+                counter += 1;
+            }
+        }
+        if counter != times {
+            self.result = false
+        }
+        self
+    }
+
+    pub fn validate(self) -> bool {
+        self.result
     }
 }
 
@@ -110,9 +143,25 @@ mod test {
         a_trait.int_to_string(63);
         a_trait.int_to_string(-1);
 
-        assert!(mock.int_to_string.was_called_with(65));
-        assert!(mock.int_to_string.was_called_with(63));
-        assert!(mock.int_to_string.was_called_with(-1));
-        assert!(!mock.int_to_string.was_called_with(0));
+        assert!(mock.int_to_string.was_called_with(65).validate());
+        assert!(mock.int_to_string.was_called_with(63).validate());
+        assert!(mock.int_to_string.was_called_with(-1).validate());
+        assert!(!mock.int_to_string.was_called_with(0).validate());
+    }
+
+    #[test]
+    fn given_mock_called_5_times_when_times_5_then_return_true_false_otherwise() {
+        let mock = MyMock::new();
+        mock.int_to_string.given(65).will_return(String::from("65"));
+        let a_trait = Box::new(mock.clone());
+
+        for _ in 0..5 {
+            a_trait.int_to_string(65);
+        }
+
+        assert_eq!(true, mock.int_to_string.was_called_with(65).times(5).validate());
+        assert_eq!(false, mock.int_to_string.was_called_with(65).times(4).validate());
+        assert_eq!(false, mock.int_to_string.was_called_with(65).times(1).validate());
+        assert_eq!(false, mock.int_to_string.was_called_with(65).times(6).validate());
     }
 }

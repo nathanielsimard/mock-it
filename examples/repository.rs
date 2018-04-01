@@ -80,5 +80,10 @@ fn main() {
     let result = service.persist(&a_valid_person.name, a_valid_person.age);
 
     assert_eq!(Ok(a_valid_person.name.clone()), result);
-    assert!(repository_mock.persist.was_called_with(a_valid_person));
+    assert!(
+        repository_mock
+            .persist
+            .was_called_with(a_valid_person)
+            .validate()
+    );
 }

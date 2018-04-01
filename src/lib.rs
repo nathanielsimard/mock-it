@@ -2,10 +2,12 @@
 #[macro_use]
 extern crate table_test;
 
-pub use mock::*;
 pub use matcher::*;
+pub use mock::*;
+pub use validator::verify;
 
-mod rule;
-mod output;
 mod matcher;
 mod mock;
+mod output;
+mod rule;
+mod validator;

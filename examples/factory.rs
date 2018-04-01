@@ -53,10 +53,9 @@ fn main() {
 
     let _ = person_factory.create(a_name.clone(), a_surname.clone());
 
-    assert!(
+    assert!(verify(
         person_factory_mock
             .create
             .was_called_with((a_name, a_surname))
-            .validate()
-    );
+    ));
 }

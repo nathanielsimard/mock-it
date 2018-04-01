@@ -3,6 +3,7 @@ use output::Output;
 use rule::Rule;
 use std::cell::RefCell;
 use std::rc::Rc;
+use validator::*;
 
 pub struct Mock<I, O> {
     calls: Rc<RefCell<Vec<I>>>,
@@ -59,39 +60,6 @@ impl<I: PartialEq, O: Clone> Mock<I, O> {
     }
 }
 
-pub struct Validator<I> {
-    calls: Rc<RefCell<Vec<I>>>,
-    result: bool,
-    input: I,
-}
-
-impl<I: PartialEq> Validator<I> {
-    fn new(calls: Rc<RefCell<Vec<I>>>, result: bool, input: I) -> Validator<I> {
-        Validator {
-            calls: calls,
-            result: result,
-            input: input,
-        }
-    }
-
-    pub fn times(mut self, times: usize) -> Validator<I> {
-        let mut counter = 0;
-        for value in &*self.calls.borrow() {
-            if value == &self.input {
-                counter += 1;
-            }
-        }
-        if counter != times {
-            self.result = false
-        }
-        self
-    }
-
-    pub fn validate(self) -> bool {
-        self.result
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -143,10 +111,10 @@ mod test {
         a_trait.int_to_string(63);
         a_trait.int_to_string(-1);
 
-        assert!(mock.int_to_string.was_called_with(65).validate());
-        assert!(mock.int_to_string.was_called_with(63).validate());
-        assert!(mock.int_to_string.was_called_with(-1).validate());
-        assert!(!mock.int_to_string.was_called_with(0).validate());
+        assert!(verify(mock.int_to_string.was_called_with(65)));
+        assert!(verify(mock.int_to_string.was_called_with(63)));
+        assert!(verify(mock.int_to_string.was_called_with(-1)));
+        assert!(!verify(mock.int_to_string.was_called_with(0)));
     }
 
     #[test]
@@ -159,9 +127,21 @@ mod test {
             a_trait.int_to_string(65);
         }
 
-        assert_eq!(true, mock.int_to_string.was_called_with(65).times(5).validate());
-        assert_eq!(false, mock.int_to_string.was_called_with(65).times(4).validate());
-        assert_eq!(false, mock.int_to_string.was_called_with(65).times(1).validate());
-        assert_eq!(false, mock.int_to_string.was_called_with(65).times(6).validate());
+        assert_eq!(
+            true,
+            verify(mock.int_to_string.was_called_with(65).times(5))
+        );
+        assert_eq!(
+            false,
+            verify(mock.int_to_string.was_called_with(65).times(4))
+        );
+        assert_eq!(
+            false,
+            verify(mock.int_to_string.was_called_with(65).times(1))
+        );
+        assert_eq!(
+            false,
+            verify(mock.int_to_string.was_called_with(65).times(6))
+        );
     }
 }

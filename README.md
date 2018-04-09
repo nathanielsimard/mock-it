@@ -17,7 +17,7 @@ Specify this crate as `[dev-dependencies]`.
 
 ```toml
 [dev-dependencies]
-mock-it = "0.1.0"
+mock-it = "0.2.0"
 ```
 
 ```rust

@@ -92,11 +92,11 @@ The first call will return the default value which is an error and the second ca
 If we want to do assertion, it is also possible.
 
 ```rust
-assert!(
+assert!(verify(
     person_factory_mock
         .create
         .was_called_with((String::from("MyName"), String::from("MySurname")))
-);
+));
 ```
 
 That's it ! If you want more examples, just check [here](examples).

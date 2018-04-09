@@ -2,6 +2,8 @@ extern crate mock_it;
 #[macro_use]
 extern crate table_test;
 
+use mock_it::Matcher;
+use mock_it::Matcher::*;
 use mock_it::*;
 
 #[derive(PartialEq, Debug, Clone)]
@@ -25,7 +27,7 @@ trait PersonFactory {
 
 #[derive(Clone)]
 struct PersonFactoryMock {
-    create: Mock<(String, String), Result<Person, String>>,
+    create: Mock<(Matcher<String>, Matcher<String>), Result<Person, String>>,
 }
 
 impl PersonFactoryMock {
@@ -38,7 +40,8 @@ impl PersonFactoryMock {
 
 impl PersonFactory for PersonFactoryMock {
     fn create(&self, name: String, surname: String) -> Result<Person, String> {
-        self.create.called((name.clone(), surname.clone()))
+        self.create
+            .called((Val(name.clone()), Val(surname.clone())))
     }
 }
 
@@ -61,7 +64,7 @@ fn will_return() {
 
         person_factory_mock
             .create
-            .given((name.clone(), surname.clone()))
+            .given((Val(name.clone()), Val(surname.clone())))
             .will_return(Ok(Person::new(name.clone(), surname.clone())));
 
         let actual = person_factory.create(name.clone(), surname.clone());
@@ -71,4 +74,30 @@ fn will_return() {
             .then("calling create return the person with the same name and surname")
             .assert_eq(person, actual);
     }
+}
+
+#[test]
+fn given_person_factory_mock_then_call_it_4_times_with_any_values_then_validate_times_4_return_true(
+) {
+    let times = 4;
+    let name = "John".to_string();
+    let surname = "Bouchard".to_string();
+    let person_factory_mock = PersonFactoryMock::new();
+    let person_factory = Box::new(person_factory_mock.clone());
+
+    person_factory_mock
+        .create
+        .given((Val(name.clone()), Val(surname.clone())))
+        .will_return(Ok(Person::new(name.clone(), surname.clone())));
+
+    for i in 0..times {
+        let _ = person_factory.create(name.clone(), i.to_string());
+    }
+
+    assert!(verify(
+        person_factory_mock
+            .create
+            .was_called_with((Any, Any))
+            .times(times),
+    ));
 }

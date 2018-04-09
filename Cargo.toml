@@ -6,8 +6,10 @@ description = "Make mocking reliable"
 repository = "https://github.com/nathanielsimard/mock-it"
 license = "MIT"
 readme="README.md"
+keywords = ["mock", "mocking", "unit-test", "testing"]
+categories = ["development-tools::testing"]
 
 [dependencies]
 
 [dev-dependencies]
-table-test = "0.2.0"
+table-test = "0.2.1"

@@ -1,13 +1,13 @@
 use output;
 use output::Output;
 use rule::Rule;
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::Mutex;
 use validator::*;
 
 pub struct Mock<I, O> {
-    calls: Rc<RefCell<Vec<I>>>,
-    rules: Rc<RefCell<Vec<Rule<I, Output<O>>>>>,
+    calls: Arc<Mutex<Vec<I>>>,
+    rules: Arc<Mutex<Vec<Rule<I, Output<O>>>>>,
     default: O,
 }
 
@@ -24,34 +24,35 @@ impl<I, O: Clone> Clone for Mock<I, O> {
 impl<I: PartialEq, O: Clone> Mock<I, O> {
     pub fn new(default: O) -> Mock<I, O> {
         Mock {
-            calls: Rc::new(RefCell::new(Vec::new())),
-            rules: Rc::new(RefCell::new(Vec::new())),
+            calls: Arc::new(Mutex::new(Vec::new())),
+            rules: Arc::new(Mutex::new(Vec::new())),
             default: default,
         }
     }
 
     pub fn given(&self, input: I) -> Output<O> {
-        let return_value = Rc::new(RefCell::new(self.default.clone()));
+        let return_value = Arc::new(Mutex::new(self.default.clone()));
         self.rules
-            .borrow_mut()
+            .lock()
+            .unwrap()
             .push(Rule::new(input, Output::new(return_value.clone())));
         Output::new(return_value)
     }
 
     pub fn called(&self, input: I) -> O {
-        for value in &*self.rules.borrow() {
+        for value in &*self.rules.lock().unwrap() {
             if &value.input == &input {
-                self.calls.borrow_mut().push(input);
+                self.calls.lock().unwrap().push(input);
                 return output::value_of(value.output.clone());
             }
         }
 
-        self.calls.borrow_mut().push(input);
+        self.calls.lock().unwrap().push(input);
         return self.default.clone();
     }
 
     pub fn was_called_with(&self, input: I) -> Validator<I> {
-        for value in &*self.calls.borrow() {
+        for value in &*self.calls.lock().unwrap() {
             if value == &input {
                 return Validator::new(self.calls.clone(), true, input);
             }

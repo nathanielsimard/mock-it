@@ -1,18 +1,18 @@
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::Mutex;
 
 pub fn verify<I>(validator: Validator<I>) -> bool {
     validator.result
 }
 
 pub struct Validator<I> {
-    calls: Rc<RefCell<Vec<I>>>,
+    calls: Arc<Mutex<Vec<I>>>,
     result: bool,
     input: I,
 }
 
 impl<I: PartialEq> Validator<I> {
-    pub fn new(calls: Rc<RefCell<Vec<I>>>, result: bool, input: I) -> Validator<I> {
+    pub fn new(calls: Arc<Mutex<Vec<I>>>, result: bool, input: I) -> Validator<I> {
         Validator {
             calls: calls,
             result: result,
@@ -26,7 +26,7 @@ impl<I: PartialEq> Validator<I> {
         }
 
         let mut counter = 0;
-        for value in &*self.calls.borrow() {
+        for value in &*self.calls.lock().unwrap() {
             if value == &self.input {
                 counter += 1;
             }
@@ -45,7 +45,7 @@ mod test {
     #[test]
     #[should_panic]
     fn times_called_with_zero_should_panic() {
-        let validator = Validator::new(Rc::new(RefCell::new(Vec::new())), true, 5);
+        let validator = Validator::new(Arc::new(Mutex::new(Vec::new())), true, 5);
         validator.times(0);
     }
 
@@ -62,7 +62,7 @@ mod test {
 
         for (test_case, (calls, initial_result, input, times), expected) in table_test!(table) {
             let validator =
-                Validator::new(Rc::new(RefCell::new(calls.clone())), initial_result, input);
+                Validator::new(Arc::new(Mutex::new(calls.clone())), initial_result, input);
 
             let actual = verify(validator.times(times));
 

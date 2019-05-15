@@ -11,14 +11,12 @@ macro_rules! verify {
     };
 }
 
-
-
 #[cfg(test)]
-mod test{
+mod test {
     use super::*;
 
     #[test]
-    fn it_works(){
+    fn it_works() {
         verify!(validator)
     }
 }

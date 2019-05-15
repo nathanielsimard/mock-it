@@ -1,9 +1,9 @@
 use crate::output;
 use crate::output::Output;
 use crate::rule::Rule;
+use crate::validator::*;
 use std::sync::Arc;
 use std::sync::Mutex;
-use crate::validator::*;
 
 pub struct Mock<I, O> {
     calls: Arc<Mutex<Vec<I>>>,
@@ -104,7 +104,7 @@ mod test {
 
     #[test]
     fn given_mock_called_with_values_when_was_called_with_then_is_true_for_those_values_false_otherwise(
-) {
+    ) {
         let mock = MyMock::new();
         let a_trait = Box::new(mock.clone());
 

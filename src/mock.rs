@@ -1,9 +1,9 @@
-use output;
-use output::Output;
-use rule::Rule;
+use crate::output;
+use crate::output::Output;
+use crate::rule::Rule;
 use std::sync::Arc;
 use std::sync::Mutex;
-use validator::*;
+use crate::validator::*;
 
 pub struct Mock<I, O> {
     calls: Arc<Mutex<Vec<I>>>,

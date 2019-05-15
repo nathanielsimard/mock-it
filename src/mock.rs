@@ -31,33 +31,41 @@ impl<I: PartialEq, O: Clone> Mock<I, O> {
     }
 
     pub fn given(&self, input: I) -> Output<O> {
-        let return_value = Arc::new(Mutex::new(self.default.clone()));
+        let output = Output::new(Arc::new(Mutex::new(self.default.clone())));
         self.rules
             .lock()
             .unwrap()
-            .push(Rule::new(input, Output::new(return_value.clone())));
-        Output::new(return_value)
+            .push(Rule::new(input, output.clone()));
+
+        output
     }
 
     pub fn called(&self, input: I) -> O {
-        for value in &*self.rules.lock().unwrap() {
-            if &value.input == &input {
-                self.calls.lock().unwrap().push(input);
-                return output::value_of(value.output.clone());
-            }
-        }
+        // Get the given value for this input
+        let rules = self.rules.lock().unwrap();
+        let given_value = rules.iter().find(|value| value.input == input);
 
+        // Record this call
         self.calls.lock().unwrap().push(input);
-        return self.default.clone();
+
+        // Return the given value, or the default if there is no given value
+        match given_value {
+            Some(value) => output::value_of(value.output.clone()),
+            None => self.default.clone(),
+        }
     }
 
     pub fn was_called_with(&self, input: I) -> Validator<I> {
-        for value in &*self.calls.lock().unwrap() {
-            if value == &input {
-                return Validator::new(self.calls.clone(), true, input);
-            }
+        let calls = self.calls.lock().unwrap();
+        let was_called = calls.iter().any(|value| value == &input);
+
+        if was_called {
+            // The mock was called with the given input
+            Validator::new(self.calls.clone(), true, input)
+        } else {
+            // The mock was not called with the given input
+            Validator::new(self.calls.clone(), false, input)
         }
-        return Validator::new(self.calls.clone(), false, input);
     }
 }
 

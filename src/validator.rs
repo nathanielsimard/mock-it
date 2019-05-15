@@ -25,15 +25,16 @@ impl<I: PartialEq> Validator<I> {
             panic!("Can't call `times` with 0, use `was_call_with` instead");
         }
 
-        let mut counter = 0;
-        for value in &*self.calls.lock().unwrap() {
-            if value == &self.input {
-                counter += 1;
-            }
-        }
-        if counter != times {
+        // Count how many times we were called with the input
+        let count = {
+            let calls = self.calls.lock().unwrap();
+            calls.iter().filter(|value| *value == &self.input).count()
+        };
+
+        if count != times {
             self.result = false
         }
+
         self
     }
 }

@@ -10,7 +10,7 @@ impl Person {
     fn new(name: &str, age: i64) -> Person {
         Person {
             name: name.to_string(),
-            age: age,
+            age,
         }
     }
 }
@@ -26,7 +26,7 @@ struct Service {
 impl Service {
     fn new(repository: Box<dyn Repository>) -> Service {
         Service {
-            repository: repository,
+            repository,
         }
     }
 

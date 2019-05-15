@@ -9,7 +9,7 @@ struct House {
 
 impl House {
     fn new(price: f64) -> House {
-        House { price: price }
+        House { price }
     }
 }
 

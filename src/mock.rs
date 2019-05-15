@@ -26,7 +26,7 @@ impl<I: PartialEq, O: Clone> Mock<I, O> {
         Mock {
             calls: Arc::new(Mutex::new(Vec::new())),
             rules: Arc::new(Mutex::new(Vec::new())),
-            default: default,
+            default,
         }
     }
 

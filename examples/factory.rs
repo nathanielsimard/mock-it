@@ -9,8 +9,8 @@ struct Person {
 impl Person {
     fn new(name: String, surname: String) -> Person {
         Person {
-            name: name,
-            surname: surname,
+            name,
+            surname,
         }
     }
 }

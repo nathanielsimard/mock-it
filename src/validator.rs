@@ -14,9 +14,9 @@ pub struct Validator<I> {
 impl<I: PartialEq> Validator<I> {
     pub fn new(calls: Arc<Mutex<Vec<I>>>, result: bool, input: I) -> Validator<I> {
         Validator {
-            calls: calls,
-            result: result,
-            input: input,
+            calls,
+            result,
+            input,
         }
     }
 

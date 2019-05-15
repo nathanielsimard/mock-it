@@ -1,4 +1,3 @@
-extern crate mock_it;
 use mock_it::*;
 
 #[derive(PartialEq, Clone)]
@@ -21,11 +20,11 @@ trait Repository {
 }
 
 struct Service {
-    repository: Box<Repository>,
+    repository: Box<dyn Repository>,
 }
 
 impl Service {
-    fn new(repository: Box<Repository>) -> Service {
+    fn new(repository: Box<dyn Repository>) -> Service {
         Service {
             repository: repository,
         }

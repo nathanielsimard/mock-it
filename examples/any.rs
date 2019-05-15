@@ -1,4 +1,3 @@
-extern crate mock_it;
 use mock_it::Mock;
 use mock_it::Matcher;
 use mock_it::Matcher::*;

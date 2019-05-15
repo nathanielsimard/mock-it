@@ -1,4 +1,3 @@
-extern crate mock_it;
 #[macro_use]
 extern crate table_test;
 

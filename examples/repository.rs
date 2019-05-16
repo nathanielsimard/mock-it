@@ -1,4 +1,3 @@
-extern crate mock_it;
 use mock_it::*;
 
 #[derive(PartialEq, Clone)]
@@ -11,7 +10,7 @@ impl Person {
     fn new(name: &str, age: i64) -> Person {
         Person {
             name: name.to_string(),
-            age: age,
+            age,
         }
     }
 }
@@ -21,13 +20,13 @@ trait Repository {
 }
 
 struct Service {
-    repository: Box<Repository>,
+    repository: Box<dyn Repository>,
 }
 
 impl Service {
-    fn new(repository: Box<Repository>) -> Service {
+    fn new(repository: Box<dyn Repository>) -> Service {
         Service {
-            repository: repository,
+            repository,
         }
     }
 

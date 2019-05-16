@@ -1,9 +1,9 @@
-use output;
-use output::Output;
-use rule::Rule;
+use crate::output;
+use crate::output::Output;
+use crate::rule::Rule;
+use crate::validator::*;
 use std::sync::Arc;
 use std::sync::Mutex;
-use validator::*;
 
 pub struct Mock<I, O> {
     calls: Arc<Mutex<Vec<I>>>,
@@ -26,38 +26,40 @@ impl<I: PartialEq, O: Clone> Mock<I, O> {
         Mock {
             calls: Arc::new(Mutex::new(Vec::new())),
             rules: Arc::new(Mutex::new(Vec::new())),
-            default: default,
+            default,
         }
     }
 
     pub fn given(&self, input: I) -> Output<O> {
-        let return_value = Arc::new(Mutex::new(self.default.clone()));
+        let output = Output::new(Arc::new(Mutex::new(self.default.clone())));
         self.rules
             .lock()
             .unwrap()
-            .push(Rule::new(input, Output::new(return_value.clone())));
-        Output::new(return_value)
+            .push(Rule::new(input, output.clone()));
+
+        output
     }
 
     pub fn called(&self, input: I) -> O {
-        for value in &*self.rules.lock().unwrap() {
-            if &value.input == &input {
-                self.calls.lock().unwrap().push(input);
-                return output::value_of(value.output.clone());
-            }
-        }
+        // Get the given value for this input
+        let rules = self.rules.lock().unwrap();
+        let given_value = rules.iter().find(|value| value.input == input);
 
+        // Record this call
         self.calls.lock().unwrap().push(input);
-        return self.default.clone();
+
+        // Return the given value, or the default if there is no given value
+        match given_value {
+            Some(value) => output::value_of(value.output.clone()),
+            None => self.default.clone(),
+        }
     }
 
     pub fn was_called_with(&self, input: I) -> Validator<I> {
-        for value in &*self.calls.lock().unwrap() {
-            if value == &input {
-                return Validator::new(self.calls.clone(), true, input);
-            }
-        }
-        return Validator::new(self.calls.clone(), false, input);
+        let calls = self.calls.lock().unwrap();
+        let was_called = calls.iter().any(|value| value == &input);
+
+        Validator::new(self.calls.clone(), was_called, input)
     }
 }
 
@@ -104,7 +106,7 @@ mod test {
 
     #[test]
     fn given_mock_called_with_values_when_was_called_with_then_is_true_for_those_values_false_otherwise(
-) {
+    ) {
         let mock = MyMock::new();
         let a_trait = Box::new(mock.clone());
 

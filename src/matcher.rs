@@ -6,7 +6,7 @@ pub enum Matcher<I> {
 
 impl<I: PartialEq> PartialEq for Matcher<I> {
     fn eq(&self, other: &Matcher<I>) -> bool {
-        use matcher::Matcher::*;
+        use crate::matcher::Matcher::*;
 
         match (self, other) {
             (&Val(ref a), &Val(ref b)) => a == b,

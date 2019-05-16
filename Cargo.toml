@@ -8,6 +8,7 @@ license = "MIT"
 readme="README.md"
 keywords = ["mock", "mocking", "unit-test", "testing"]
 categories = ["development-tools::testing"]
+edition = "2018"
 
 [dependencies]
 

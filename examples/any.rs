@@ -1,7 +1,6 @@
-extern crate mock_it;
-use mock_it::Mock;
 use mock_it::Matcher;
 use mock_it::Matcher::*;
+use mock_it::Mock;
 
 #[derive(Debug, PartialEq, Clone)]
 struct House {
@@ -10,7 +9,7 @@ struct House {
 
 impl House {
     fn new(price: f64) -> House {
-        House { price: price }
+        House { price }
     }
 }
 

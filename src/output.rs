@@ -8,7 +8,7 @@ pub struct Output<O> {
 
 impl<O> Output<O> {
     pub fn new(value: Arc<Mutex<O>>) -> Output<O> {
-        Output { value: value }
+        Output { value }
     }
 }
 

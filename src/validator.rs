@@ -14,9 +14,9 @@ pub struct Validator<I> {
 impl<I: PartialEq> Validator<I> {
     pub fn new(calls: Arc<Mutex<Vec<I>>>, result: bool, input: I) -> Validator<I> {
         Validator {
-            calls: calls,
-            result: result,
-            input: input,
+            calls,
+            result,
+            input,
         }
     }
 
@@ -25,15 +25,15 @@ impl<I: PartialEq> Validator<I> {
             panic!("Can't call `times` with 0, use `was_call_with` instead");
         }
 
-        let mut counter = 0;
-        for value in &*self.calls.lock().unwrap() {
-            if value == &self.input {
-                counter += 1;
-            }
-        }
-        if counter != times {
+        let times_called = {
+            let calls = self.calls.lock().unwrap();
+            calls.iter().filter(|value| *value == &self.input).count()
+        };
+
+        if times_called != times {
             self.result = false
         }
+
         self
     }
 }

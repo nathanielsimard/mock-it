@@ -1,4 +1,3 @@
-extern crate mock_it;
 use mock_it::*;
 
 trait Validator {

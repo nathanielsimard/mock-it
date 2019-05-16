@@ -1,4 +1,3 @@
-extern crate mock_it;
 #[macro_use]
 extern crate table_test;
 
@@ -15,8 +14,8 @@ struct Person {
 impl Person {
     fn new(name: String, surname: String) -> Person {
         Person {
-            name: name,
-            surname: surname,
+            name,
+            surname,
         }
     }
 }

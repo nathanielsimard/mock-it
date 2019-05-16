@@ -59,13 +59,7 @@ impl<I: PartialEq, O: Clone> Mock<I, O> {
         let calls = self.calls.lock().unwrap();
         let was_called = calls.iter().any(|value| value == &input);
 
-        if was_called {
-            // The mock was called with the given input
-            Validator::new(self.calls.clone(), true, input)
-        } else {
-            // The mock was not called with the given input
-            Validator::new(self.calls.clone(), false, input)
-        }
+        Validator::new(self.calls.clone(), was_called, input)
     }
 }
 

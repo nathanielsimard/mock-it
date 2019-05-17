@@ -1,7 +1,6 @@
 #!/bin/sh
 
 mkdir -p target/cov
-cargo clean
 cargo install cargo-kcov
 docker run -it --rm --security-opt seccomp=unconfined \
 	-v "$HOME"/.cargo:/root/.cargo \

@@ -1,6 +1,6 @@
 [package]
 name = "mock-it"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["nathanielsimard <nathaniel.simard@outlook.com>"]
 description = "Make mocking reliable"
 repository = "https://github.com/nathanielsimard/mock-it"

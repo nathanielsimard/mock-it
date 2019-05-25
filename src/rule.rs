@@ -5,9 +5,6 @@ pub struct Rule<I, O> {
 
 impl<I, O> Rule<I, O> {
     pub fn new(input: I, output: O) -> Rule<I, O> {
-        Rule {
-            input,
-            output,
-        }
+        Rule { input, output }
     }
 }

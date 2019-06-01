@@ -38,7 +38,7 @@ impl<I: PartialEq, O: Clone> Mock<I, O> {
         // Record this call
         self.calls.lock().unwrap().push(input);
 
-        // Return the given value, or the default if there is no given value
+        // Return the given value, or fail if there is no given value
         match given_value {
             Some(value) => value.output.clone(),
             None => panic!("Mock called with unexpected input"),

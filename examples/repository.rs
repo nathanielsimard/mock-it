@@ -54,7 +54,7 @@ struct RepositoryMock {
 impl RepositoryMock {
     fn new() -> RepositoryMock {
         RepositoryMock {
-            persist: Mock::new(None),
+            persist: Mock::new(),
         }
     }
 }

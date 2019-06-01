@@ -1,5 +1,4 @@
-use crate::output;
-use crate::output::Output;
+use crate::given::Given;
 use crate::rule::Rule;
 use crate::validator::*;
 use std::sync::Arc;
@@ -7,37 +6,28 @@ use std::sync::Mutex;
 
 pub struct Mock<I, O> {
     calls: Arc<Mutex<Vec<I>>>,
-    rules: Arc<Mutex<Vec<Rule<I, Output<O>>>>>,
-    default: O,
+    rules: Arc<Mutex<Vec<Rule<I, O>>>>,
 }
 
-impl<I, O: Clone> Clone for Mock<I, O> {
+impl<I, O> Clone for Mock<I, O> {
     fn clone(&self) -> Mock<I, O> {
         Mock {
             calls: self.calls.clone(),
             rules: self.rules.clone(),
-            default: self.default.clone(),
         }
     }
 }
 
 impl<I: PartialEq, O: Clone> Mock<I, O> {
-    pub fn new(default: O) -> Mock<I, O> {
+    pub fn new() -> Mock<I, O> {
         Mock {
             calls: Arc::new(Mutex::new(Vec::new())),
             rules: Arc::new(Mutex::new(Vec::new())),
-            default,
         }
     }
 
-    pub fn given(&self, input: I) -> Output<O> {
-        let output = Output::new(Arc::new(Mutex::new(self.default.clone())));
-        self.rules
-            .lock()
-            .unwrap()
-            .push(Rule::new(input, output.clone()));
-
-        output
+    pub fn given(&self, input: I) -> Given<I, O> {
+        Given::new(input, self.rules.clone())
     }
 
     pub fn called(&self, input: I) -> O {
@@ -50,8 +40,8 @@ impl<I: PartialEq, O: Clone> Mock<I, O> {
 
         // Return the given value, or the default if there is no given value
         match given_value {
-            Some(value) => output::value_of(value.output.clone()),
-            None => self.default.clone(),
+            Some(value) => value.output.clone(),
+            None => panic!("Mock called with unexpected input"),
         }
     }
 
@@ -79,7 +69,7 @@ mod test {
     impl MyMock {
         fn new() -> MyMock {
             MyMock {
-                int_to_string: Mock::new(String::new()),
+                int_to_string: Mock::new(),
             }
         }
     }
@@ -90,8 +80,10 @@ mod test {
         }
     }
 
+    /// Given some rules, the mock should return the output in the rule when
+    /// called
     #[test]
-    fn given_mock_with_rules_when_call_it_then_it_should_respect_those_rules() {
+    fn mock_output() {
         let mock = MyMock::new();
         mock.int_to_string.given(65).will_return(String::from("65"));
         mock.int_to_string.given(63).will_return(String::from("63"));
@@ -101,13 +93,15 @@ mod test {
         assert_eq!("65", a_trait.int_to_string(65));
         assert_eq!("63", a_trait.int_to_string(63));
         assert_eq!("-1", a_trait.int_to_string(-1));
-        assert_eq!("", a_trait.int_to_string(0));
     }
 
+    /// The mock records the input it was called with
     #[test]
-    fn given_mock_called_with_values_when_was_called_with_then_is_true_for_those_values_false_otherwise(
-    ) {
+    fn was_called_with() {
         let mock = MyMock::new();
+        mock.int_to_string.given(65).will_return(String::from(""));
+        mock.int_to_string.given(63).will_return(String::from(""));
+        mock.int_to_string.given(-1).will_return(String::from(""));
         let a_trait = Box::new(mock.clone());
 
         a_trait.int_to_string(65);

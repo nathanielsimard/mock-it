@@ -6,8 +6,8 @@ pub use crate::matcher::*;
 pub use crate::mock::*;
 pub use crate::validator::verify;
 
+mod given;
 mod matcher;
 mod mock;
-mod output;
 mod rule;
 mod validator;

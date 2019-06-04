@@ -49,3 +49,9 @@ fn mock_respects_given() {
     assert_ne!(mock.do_something("test 2".to_string(), 42), true);
     assert_eq!(mock.do_something("test".to_string(), 42), true);
 }
+
+#[test]
+fn mock_can_be_cloned() {
+    let mock = MyTraitMock::new();
+    let _cloned_mock = mock.clone();
+}

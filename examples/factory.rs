@@ -27,7 +27,7 @@ struct PersonFactoryMock {
 impl PersonFactoryMock {
     fn new() -> PersonFactoryMock {
         PersonFactoryMock {
-            create: Mock::new(Err("".to_string())),
+            create: Mock::new(),
         }
     }
 }

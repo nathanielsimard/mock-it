@@ -32,7 +32,7 @@ struct PersonFactoryMock {
 impl PersonFactoryMock {
     fn new() -> PersonFactoryMock {
         PersonFactoryMock {
-            create: Mock::new(Err("".to_string())),
+            create: Mock::new(),
         }
     }
 }
@@ -75,8 +75,9 @@ fn will_return() {
     }
 }
 
+/// The mock can validate the number of times it was called when using `Matcher`
 #[test]
-fn given_person_factory_mock_then_call_it_4_times_with_any_values_then_validate_times_4_return_true(
+fn validate_times_using_matcher(
 ) {
     let times = 4;
     let name = "John".to_string();
@@ -86,7 +87,7 @@ fn given_person_factory_mock_then_call_it_4_times_with_any_values_then_validate_
 
     person_factory_mock
         .create
-        .given((Val(name.clone()), Val(surname.clone())))
+        .given((Val(name.clone()), Any))
         .will_return(Ok(Person::new(name.clone(), surname.clone())));
 
     for i in 0..times {

@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq)]
 pub struct Rule<I, O> {
     pub input: I,
     pub output: O,

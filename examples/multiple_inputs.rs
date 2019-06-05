@@ -18,7 +18,7 @@ impl Validator for ValidatorMock {
 impl ValidatorMock {
     fn new() -> ValidatorMock {
         ValidatorMock {
-            validate_credentials: Mock::new(Err("Input not found".to_string())),
+            validate_credentials: Mock::new(),
         }
     }
 }

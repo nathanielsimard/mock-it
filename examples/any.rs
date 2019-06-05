@@ -24,7 +24,7 @@ struct HouseFactoryMock {
 impl HouseFactoryMock {
     fn new() -> HouseFactoryMock {
         HouseFactoryMock {
-            create: Mock::new(Err("Mock error".to_string())),
+            create: Mock::new(),
         }
     }
 }

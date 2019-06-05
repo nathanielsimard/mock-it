@@ -41,8 +41,6 @@ mod tests {
         let rules = Arc::new(Mutex::new(Vec::new()));
         let given = Given::new("hello", rules.clone());
 
-        assert_eq!(rules.lock().unwrap().len(), 0);
-
         given.will_return(true);
 
         let rules = rules.lock().unwrap();
@@ -55,8 +53,6 @@ mod tests {
     fn add_default() {
         let rules = Arc::new(Mutex::new(Vec::new()));
         let given: Given<&str, bool> = Given::new("hello", rules.clone());
-
-        assert_eq!(rules.lock().unwrap().len(), 0);
 
         given.will_return_default();
 

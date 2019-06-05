@@ -1,0 +1,19 @@
+[package]
+name = "mock-it_codegen"
+version = "0.1.0"
+authors = ["Mcat12 <mark.drobnak@gmail.com>", "nathanielsimard <nathaniel.simard@outlook.com>"]
+description = "Codegen for mock-it"
+repository = "https://github.com/nathanielsimard/mock-it"
+license = "MIT"
+readme="README.md"
+keywords = ["mock", "mocking", "unit-test", "testing"]
+categories = ["development-tools::testing"]
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "0.15", features = ["full"] }
+quote = "0.6"
+proc-macro2 = "0.4"

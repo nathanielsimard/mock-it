@@ -24,6 +24,15 @@ fn mock_implements_trait() {
     let _trait_obj: &MyTrait = &MyTraitMock::new();
 }
 
+/// The mock can be clone, but will keep its inner state
+/// making it easy to share with other struct without
+/// specific lifetime
+#[test]
+fn mock_can_be_cloned() {
+    let mock = MyTraitMock::new();
+    let _cloned_mock = mock.clone();
+}
+
 /// The mock records calls to the trait methods
 #[test]
 fn mock_is_called() {
@@ -48,10 +57,4 @@ fn mock_respects_given() {
 
     assert_ne!(mock.do_something("test 2".to_string(), 42), true);
     assert_eq!(mock.do_something("test".to_string(), 42), true);
-}
-
-#[test]
-fn mock_can_be_cloned() {
-    let mock = MyTraitMock::new();
-    let _cloned_mock = mock.clone();
 }

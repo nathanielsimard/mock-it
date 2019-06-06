@@ -1,6 +1,6 @@
 use mock_it::{mock_it, verify};
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, PartialEq, Debug)]
 pub struct Person {
     name: String,
     surname: String,
@@ -14,16 +14,8 @@ impl Person {
 
 #[mock_it]
 trait PersonFactory {
-    fn create(&self, name: String, surname: String) -> Person ;
+    fn create(&self, name: String, surname: String) -> Person;
 }
-
-//impl Clone for PersonFactoryMock {
-//    fn clone(&self) -> Self {
-//        PersonFactoryMock {
-//            create: self.create.clone()
-//        }
-//    }
-//}
 
 fn main() {
     let person_factory_mock = PersonFactoryMock::new();
@@ -36,11 +28,13 @@ fn main() {
         .given((a_name.clone(), a_surname.clone()))
         .will_return(Person::new(a_name.clone(), a_surname.clone()));
 
-    let _ = person_factory.create(a_name.clone(), a_surname.clone());
+    let person = person_factory.create(a_name.clone(), a_surname.clone());
 
     assert!(verify(
         person_factory_mock
             .create
-            .was_called_with((a_name, a_surname))
+            .was_called_with((a_name.clone(), a_surname.clone()))
     ));
+
+    assert_eq!(person, Person::new(a_name, a_surname))
 }

@@ -31,7 +31,7 @@ pub fn mock_it(
     let fields = create_fields(&item_trait);
     let field_init = create_field_init(&item_trait);
     let trait_impls = create_trait_impls(&item_trait);
-    let clone_impls = create_clone_impls(&item_trait);
+    let clone_impl = create_clone_impl(&item_trait);
 
     // Combine and tokenize the final result
     let output = quote! {
@@ -52,7 +52,7 @@ pub fn mock_it(
         impl std::clone::Clone for #mock_ident {
             fn clone(&self) -> Self {
                 #mock_ident {
-                    #(#clone_impls),*
+                    #(#clone_impl),*
                 }
             }
         }
@@ -86,7 +86,7 @@ fn create_field_init(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream
 }
 
 /// Create the clone implementation
-fn create_clone_impls(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> + '_ {
+fn create_clone_impl(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> + '_ {
     get_trait_method_types(item_trait).map(|(ident, _, _)| {
         quote! {
             #ident: self.#ident.clone()

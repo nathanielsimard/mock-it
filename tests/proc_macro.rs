@@ -7,17 +7,6 @@ trait MyTrait {
     fn no_args(&self) -> String;
 }
 
-/// The mock has a `new` method which initializes each mock with a default value
-/// using `Default`
-#[test]
-fn mock_initializes_with_default() {
-    let mock = MyTraitMock::new();
-    let args = ("".to_string(), 0);
-    let output = mock.do_something.called(args);
-
-    assert_eq!(output, bool::default());
-}
-
 /// The mock implements the trait
 #[test]
 fn mock_implements_trait() {
@@ -38,6 +27,10 @@ fn mock_can_be_cloned() {
 fn mock_is_called() {
     let mock = MyTraitMock::new();
 
+    mock.do_something
+        .given(("test".to_string(), 42))
+        .will_return(true);
+
     mock.do_something("test".to_string(), 42);
 
     assert!(verify(
@@ -55,6 +48,5 @@ fn mock_respects_given() {
         .given(("test".to_string(), 42))
         .will_return(true);
 
-    assert_ne!(mock.do_something("test 2".to_string(), 42), true);
     assert_eq!(mock.do_something("test".to_string(), 42), true);
 }

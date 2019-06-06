@@ -76,14 +76,11 @@ fn create_fields(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> + 
 
 /// Create the field initializers for the `new` method
 fn create_field_init(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> + '_ {
-    get_trait_method_types(item_trait).map(|(ident, _, return_type)| {
-        let default_value = match return_type {
-            Some(return_type) => quote! { <#return_type as core::default::Default>::default() },
-            None => quote! { () },
-        };
+    get_trait_methods(item_trait).map(|method| {
+        let ident = method.sig.ident.clone();
 
         quote! {
-            #ident: mock_it::Mock::new(#default_value)
+            #ident: mock_it::Mock::new()
         }
     })
 }

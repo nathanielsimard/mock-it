@@ -18,6 +18,7 @@ impl<I: PartialEq> PartialEq for Matcher<I> {
 #[cfg(test)]
 mod test {
     use super::Matcher::*;
+    use table_test::table_test;
 
     #[test]
     fn test_eq() {

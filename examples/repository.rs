@@ -25,9 +25,7 @@ struct Service {
 
 impl Service {
     fn new(repository: Box<dyn Repository>) -> Service {
-        Service {
-            repository,
-        }
+        Service { repository }
     }
 
     fn persist(&self, name: &str, age: i64) -> Result<String, String> {

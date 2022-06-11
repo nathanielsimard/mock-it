@@ -48,6 +48,6 @@ fn main() {
 
     match house {
         Ok(house) => assert_eq!(expected_house, house),
-        Err(message) => panic!(message),
+        Err(message) => panic!("{}", message),
     }
 }

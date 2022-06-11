@@ -10,7 +10,7 @@ trait MyTrait {
 /// The mock implements the trait
 #[test]
 fn mock_implements_trait() {
-    let _trait_obj: &MyTrait = &MyTraitMock::new();
+    let _trait_obj: &dyn MyTrait = &MyTraitMock::new();
 }
 
 /// The mock can be clone, but will keep its inner state

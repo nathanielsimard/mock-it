@@ -3,7 +3,7 @@ extern crate proc_macro;
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
-    parse_macro_input, ArgCaptured, FnArg, Ident, Item, ItemTrait, Pat, ReturnType, TraitItem,
+    parse_macro_input, FnArg, Ident, Item, ItemTrait, Pat, PatType, ReturnType, TraitItem,
     TraitItemMethod, Type,
 };
 
@@ -94,15 +94,14 @@ fn create_clone_impl(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream
     })
 }
 
-
 /// Create the trait method implementations
 fn create_trait_impls(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> + '_ {
     get_trait_methods(item_trait).map(|method| {
         let (ident, args, _) = get_method_types(method);
         let arg_names: Vec<Ident> = args
             .into_iter()
-            .map(|arg| match arg.pat {
-                Pat::Ident(ref inner) => inner.ident.clone(),
+            .map(|arg| match *arg.pat.clone() {
+                Pat::Ident(inner) => inner.ident.clone(),
                 _ => panic!("unknown argument pattern"),
             })
             .collect();
@@ -123,8 +122,8 @@ fn get_mocks(item_trait: &ItemTrait) -> impl Iterator<Item = (Ident, TokenStream
 }
 
 /// Get the mock type for the arguments and return type combination
-fn get_mock(args: Vec<&ArgCaptured>, return_type: Option<&Box<Type>>) -> TokenStream {
-    let arg_types: Vec<&Type> = args.into_iter().map(|arg| &arg.ty).collect();
+fn get_mock(args: Vec<&PatType>, return_type: Option<&Box<Type>>) -> TokenStream {
+    let arg_types: Vec<&Box<Type>> = args.into_iter().map(|arg| &arg.ty).collect();
     let return_tokens = match return_type {
         Some(return_type) => quote! { #return_type },
         None => quote! { () },
@@ -138,24 +137,23 @@ fn get_mock(args: Vec<&ArgCaptured>, return_type: Option<&Box<Type>>) -> TokenSt
 /// Get the identifier, arguments, and return type for each method in the trait
 fn get_trait_method_types(
     item_trait: &ItemTrait,
-) -> impl Iterator<Item = (Ident, Vec<&ArgCaptured>, Option<&Box<Type>>)> {
+) -> impl Iterator<Item = (Ident, Vec<&PatType>, Option<&Box<Type>>)> {
     get_trait_methods(item_trait).map(get_method_types)
 }
 
 /// Get the method's identifier, arguments, and return type
-fn get_method_types(method: &TraitItemMethod) -> (Ident, Vec<&ArgCaptured>, Option<&Box<Type>>) {
+fn get_method_types(method: &TraitItemMethod) -> (Ident, Vec<&PatType>, Option<&Box<Type>>) {
     let ident = method.sig.ident.clone();
-    let args: Vec<&ArgCaptured> = method
+    let args: Vec<&PatType> = method
         .sig
-        .decl
         .inputs
         .iter()
         .filter_map(|arg| match arg {
-            FnArg::Captured(inner) => Some(inner),
+            FnArg::Typed(inner) => Some(inner),
             _ => None,
         })
         .collect();
-    let return_type = match method.sig.decl.output {
+    let return_type = match method.sig.output {
         ReturnType::Default => None,
         ReturnType::Type(_, ref return_type) => Some(return_type),
     };

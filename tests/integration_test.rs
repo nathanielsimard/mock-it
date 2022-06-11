@@ -13,10 +13,7 @@ struct Person {
 
 impl Person {
     fn new(name: String, surname: String) -> Person {
-        Person {
-            name,
-            surname,
-        }
+        Person { name, surname }
     }
 }
 
@@ -77,8 +74,7 @@ fn will_return() {
 
 /// The mock can validate the number of times it was called when using `Matcher`
 #[test]
-fn validate_times_using_matcher(
-) {
+fn validate_times_using_matcher() {
     let times = 4;
     let name = "John".to_string();
     let surname = "Bouchard".to_string();

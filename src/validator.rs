@@ -41,6 +41,7 @@ impl<I: PartialEq> Validator<I> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use table_test::table_test;
 
     #[test]
     #[should_panic]

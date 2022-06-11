@@ -1,6 +1,6 @@
 [package]
 name = "mock-it"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["nathanielsimard <nathaniel.simard@outlook.com>"]
 description = "Make mocking reliable"
 repository = "https://github.com/nathanielsimard/mock-it"
@@ -8,10 +8,10 @@ license = "MIT"
 readme="README.md"
 keywords = ["mock", "mocking", "unit-test", "testing"]
 categories = ["development-tools::testing"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-mock-it_codegen = { version = "0.1.0", path = "./mock-it_codegen" }
+mock-it_codegen = { version = "0.1.1", path = "./mock-it_codegen" }
 
 [dev-dependencies]
 table-test = "0.2.1"

@@ -1,6 +1,4 @@
 # Mock It
-[![Build Status](https://travis-ci.org/nathanielsimard/mock-it.svg?branch=master)](https://travis-ci.org/nathanielsimard/mock-it)
-[![codecov.io](https://codecov.io/gh/nathanielsimard/mock-it/coverage.svg?branch=master)](https://codecov.io/gh/nathanielsimard/mock-it)
 [![Current Crates.io Version](https://img.shields.io/crates/v/mock-it.svg)](https://crates.io/crates/mock-it)
 
 This library aims to make mocking reliable.

@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   publish:
-    name: publish
+    name: test
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -20,3 +20,5 @@ jobs:
       - name: run tests
         run: cargo test
 
+      - name: check format
+        run: cargo fmt --check --all

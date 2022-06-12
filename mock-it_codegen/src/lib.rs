@@ -1,11 +1,13 @@
 extern crate proc_macro;
 
+mod mock_fn;
 mod trait_method;
 
+use mock_fn::{mock_fns, MockFn};
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Ident, Item, Type};
-use trait_method::{get_trait_method_types, Argument, TraitMethodType};
+use syn::{parse_macro_input, Ident, Item};
+use trait_method::{get_trait_method_types, TraitMethodType};
 
 /// Generate a mock struct from a trait. The mock struct will be named after the
 /// trait, with "Mock" appended.
@@ -23,19 +25,24 @@ pub fn mock_it(
         _ => panic!("Only traits can be mocked with the mock_it macro"),
     };
     let trait_method_types = get_trait_method_types(&item_trait);
+    let mock_fns = mock_fns(&trait_method_types);
 
     // Create the mock identifier
     let trait_ident = &item_trait.ident;
     let mock_ident = Ident::new(&format!("{}Mock", trait_ident), trait_ident.span());
 
     // Generate the mock
-    let fields = create_fields(&trait_method_types);
-    let field_init = create_field_init(&trait_method_types);
+    let fields = create_fields(&mock_fns);
+    let field_init = create_field_init(&mock_fns);
     let trait_impls = create_trait_impls(&trait_method_types);
     let clone_impl = create_clone_impl(&trait_method_types);
 
-    // Combine and tokenize the final result
+    let mock_fn_stream = mock_fns.into_iter().map(|mock_fn| mock_fn.token_stream);
+
     let output = quote! {
+
+        #(#mock_fn_stream)*
+
         #item_trait
 
         pub struct #mock_ident {
@@ -48,6 +55,7 @@ pub fn mock_it(
                     #(#field_init),*
                 }
             }
+
         }
 
         impl std::clone::Clone for #mock_ident {
@@ -63,32 +71,37 @@ pub fn mock_it(
         }
     };
 
-    // panic!("{}", output);
     output.into()
 }
 
 /// Create the struct fields
-fn create_fields(
-    trait_method_types: &Vec<TraitMethodType>,
-) -> impl Iterator<Item = TokenStream> + '_ {
-    get_mocks(trait_method_types).map(|(ident, mock)| {
-        quote! {
-            pub #ident: #mock
-        }
-    })
+fn create_fields(mock_fns: &Vec<MockFn>) -> Vec<TokenStream> {
+    mock_fns
+        .iter()
+        .map(|mock_fn| {
+            let mock_name = &mock_fn.struct_name;
+            let field_name = &mock_fn.fn_name;
+
+            quote! {
+                pub #field_name: #mock_name
+            }
+        })
+        .collect()
 }
 
 /// Create the field initializers for the `new` method
-fn create_field_init(
-    trait_method_types: &Vec<TraitMethodType>,
-) -> impl Iterator<Item = TokenStream> + '_ {
-    trait_method_types.iter().map(|method| {
-        let ident = method.signature.ident.clone();
+fn create_field_init(mock_fns: &Vec<MockFn>) -> Vec<TokenStream> {
+    mock_fns
+        .iter()
+        .map(|mock_fn| {
+            let mock_name = &mock_fn.struct_name;
+            let field_name = &mock_fn.fn_name;
 
-        quote! {
-            #ident: mock_it::Mock::new()
-        }
-    })
+            quote! {
+                #field_name: #mock_name::new()
+            }
+        })
+        .collect()
 }
 
 /// Create the clone implementation
@@ -115,13 +128,8 @@ fn create_trait_impls(
             .iter()
             .map(|arg| {
                 let ty = &arg.name;
-                if arg.is_reference {
-                    return quote! {
-                        std::sync::Arc::from(#ty.clone())
-                    };
-                }
                 quote! {
-                    #ty
+                    mock_it::Matcher::Val(#ty)
                 }
             })
             .collect();
@@ -129,33 +137,8 @@ fn create_trait_impls(
 
         quote! {
             #signature {
-                self.#ident.called((#(#arg_names),*))
+                self.#ident.called(#(#arg_names),*)
             }
         }
     })
-}
-
-/// Get the mock types for each method on the trait
-fn get_mocks(
-    trait_method_types: &Vec<TraitMethodType>,
-) -> impl Iterator<Item = (Ident, TokenStream)> + '_ {
-    trait_method_types.iter().map(|method_type| {
-        (
-            method_type.signature.ident.clone(),
-            get_mock(&method_type.args, &method_type.return_type),
-        )
-    })
-}
-
-/// Get the mock type for the arguments and return type combination
-fn get_mock(args: &Vec<Argument>, return_type: &Option<Type>) -> TokenStream {
-    let arg_types: Vec<TokenStream> = args.iter().map(|arg| arg.definition.clone()).collect();
-    let return_tokens = match return_type {
-        Some(return_type) => quote! { #return_type },
-        None => quote! { () },
-    };
-
-    quote! {
-        mock_it::Mock<(#(#arg_types),*), #return_tokens>
-    }
 }

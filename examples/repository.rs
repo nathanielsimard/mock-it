@@ -1,6 +1,6 @@
 use mock_it::*;
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 struct Person {
     name: String,
     age: i64,

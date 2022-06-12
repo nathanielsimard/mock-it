@@ -14,6 +14,7 @@ pub struct Argument {
     pub is_reference: bool,
     pub name: Ident,
     pub definition: TokenStream,
+    pub original_type: Type,
 }
 
 pub fn get_trait_method_types(item_trait: &ItemTrait) -> Vec<TraitMethodType> {
@@ -42,27 +43,29 @@ fn get_method_types(method: &TraitItemMethod) -> TraitMethodType {
             _ => None,
         })
         .map(|arg| {
-            let ty = arg.ty.clone();
-            if let Type::Reference(reference) = *ty {
+            let original_type = arg.ty.clone();
+            if let Type::Reference(reference) = *original_type.clone() {
                 let ty = reference.elem.clone();
                 let definition = quote! {
-                    std::sync::Arc<#ty>
+                    mock_it::Matcher<std::sync::Arc<#ty>>
                 };
                 let name = get_pat_type_name(&arg);
                 return Argument {
                     is_reference: true,
                     definition,
                     name,
+                    original_type: *original_type.clone(),
                 };
             } else {
                 let definition = quote! {
-                    #ty
+                    mock_it::Matcher<#original_type>
                 };
                 let name = get_pat_type_name(&arg);
                 return Argument {
                     is_reference: false,
                     definition,
                     name,
+                    original_type: *original_type.clone(),
                 };
             }
         })

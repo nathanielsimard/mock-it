@@ -4,8 +4,8 @@ mod trait_method;
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Ident, Item, Pat, PatType, Type};
-use trait_method::{get_trait_method_types, TraitMethodType};
+use syn::{parse_macro_input, Ident, Item, Type};
+use trait_method::{get_trait_method_types, Argument, TraitMethodType};
 
 /// Generate a mock struct from a trait. The mock struct will be named after the
 /// trait, with "Mock" appended.
@@ -110,12 +110,19 @@ fn create_trait_impls(
     trait_method_types.iter().map(|method_type| {
         let ident = &method_type.signature.ident;
 
-        let arg_names: Vec<Ident> = method_type
+        let arg_names: Vec<TokenStream> = method_type
             .args
             .iter()
-            .map(|arg| match *arg.pat.clone() {
-                Pat::Ident(inner) => inner.ident.clone(),
-                _ => panic!("unknown argument pattern"),
+            .map(|arg| {
+                let ty = &arg.name;
+                if arg.is_reference {
+                    return quote! {
+                        std::sync::Arc::from(#ty.clone())
+                    };
+                }
+                quote! {
+                    #ty
+                }
             })
             .collect();
         let signature = &method_type.signature;
@@ -141,8 +148,8 @@ fn get_mocks(
 }
 
 /// Get the mock type for the arguments and return type combination
-fn get_mock(args: &Vec<PatType>, return_type: &Option<Type>) -> TokenStream {
-    let arg_types: Vec<&Box<Type>> = args.into_iter().map(|arg| &arg.ty).collect();
+fn get_mock(args: &Vec<Argument>, return_type: &Option<Type>) -> TokenStream {
+    let arg_types: Vec<TokenStream> = args.iter().map(|arg| arg.definition.clone()).collect();
     let return_tokens = match return_type {
         Some(return_type) => quote! { #return_type },
         None => quote! { () },

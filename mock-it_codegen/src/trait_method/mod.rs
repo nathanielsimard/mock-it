@@ -1,9 +1,19 @@
-use syn::{FnArg, ItemTrait, PatType, ReturnType, Signature, TraitItem, TraitItemMethod, Type};
+use proc_macro2::TokenStream;
+use quote::quote;
+use syn::{
+    FnArg, Ident, ItemTrait, Pat, PatType, ReturnType, Signature, TraitItem, TraitItemMethod, Type,
+};
 
 pub struct TraitMethodType {
-    pub args: Vec<PatType>,
+    pub args: Vec<Argument>,
     pub return_type: Option<Type>,
     pub signature: Signature,
+}
+
+pub struct Argument {
+    pub is_reference: bool,
+    pub name: Ident,
+    pub definition: TokenStream,
 }
 
 pub fn get_trait_method_types(item_trait: &ItemTrait) -> Vec<TraitMethodType> {
@@ -23,13 +33,38 @@ fn get_trait_methods(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemM
 }
 
 fn get_method_types(method: &TraitItemMethod) -> TraitMethodType {
-    let args: Vec<PatType> = method
+    let args: Vec<Argument> = method
         .sig
         .inputs
         .iter()
         .filter_map(|arg| match arg {
             FnArg::Typed(inner) => Some(inner.clone()),
             _ => None,
+        })
+        .map(|arg| {
+            let ty = arg.ty.clone();
+            if let Type::Reference(reference) = *ty {
+                let ty = reference.elem.clone();
+                let definition = quote! {
+                    std::sync::Arc<#ty>
+                };
+                let name = get_pat_type_name(&arg);
+                return Argument {
+                    is_reference: true,
+                    definition,
+                    name,
+                };
+            } else {
+                let definition = quote! {
+                    #ty
+                };
+                let name = get_pat_type_name(&arg);
+                return Argument {
+                    is_reference: false,
+                    definition,
+                    name,
+                };
+            }
         })
         .collect();
     let return_type = match method.sig.output {
@@ -42,5 +77,12 @@ fn get_method_types(method: &TraitItemMethod) -> TraitMethodType {
         signature,
         args,
         return_type,
+    }
+}
+
+fn get_pat_type_name(pat_type: &PatType) -> Ident {
+    match &*pat_type.pat {
+        Pat::Ident(inner) => inner.ident.clone(),
+        _ => panic!("unknown argument pattern"),
     }
 }

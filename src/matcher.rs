@@ -15,6 +15,14 @@ impl<I: PartialEq> PartialEq for Matcher<I> {
     }
 }
 
+pub fn eq<I>(input: I) -> Matcher<I> {
+    Matcher::Val(input)
+}
+
+pub fn any<I>() -> Matcher<I> {
+    Matcher::Any
+}
+
 #[cfg(test)]
 mod test {
     use super::Matcher::*;

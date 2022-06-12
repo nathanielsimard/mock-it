@@ -1,11 +1,11 @@
 extern crate proc_macro;
 
+mod trait_method;
+
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{
-    parse_macro_input, FnArg, Ident, Item, ItemTrait, Pat, PatType, ReturnType, TraitItem,
-    TraitItemMethod, Type,
-};
+use syn::{parse_macro_input, Ident, Item, Pat, PatType, Type};
+use trait_method::{get_trait_method_types, TraitMethodType};
 
 /// Generate a mock struct from a trait. The mock struct will be named after the
 /// trait, with "Mock" appended.
@@ -22,16 +22,17 @@ pub fn mock_it(
         Item::Trait(item_trait) => item_trait,
         _ => panic!("Only traits can be mocked with the mock_it macro"),
     };
+    let trait_method_types = get_trait_method_types(&item_trait);
 
     // Create the mock identifier
     let trait_ident = &item_trait.ident;
     let mock_ident = Ident::new(&format!("{}Mock", trait_ident), trait_ident.span());
 
     // Generate the mock
-    let fields = create_fields(&item_trait);
-    let field_init = create_field_init(&item_trait);
-    let trait_impls = create_trait_impls(&item_trait);
-    let clone_impl = create_clone_impl(&item_trait);
+    let fields = create_fields(&trait_method_types);
+    let field_init = create_field_init(&trait_method_types);
+    let trait_impls = create_trait_impls(&trait_method_types);
+    let clone_impl = create_clone_impl(&trait_method_types);
 
     // Combine and tokenize the final result
     let output = quote! {
@@ -62,12 +63,15 @@ pub fn mock_it(
         }
     };
 
+    // panic!("{}", output);
     output.into()
 }
 
 /// Create the struct fields
-fn create_fields(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> + '_ {
-    get_mocks(item_trait).map(|(ident, mock)| {
+fn create_fields(
+    trait_method_types: &Vec<TraitMethodType>,
+) -> impl Iterator<Item = TokenStream> + '_ {
+    get_mocks(trait_method_types).map(|(ident, mock)| {
         quote! {
             pub #ident: #mock
         }
@@ -75,9 +79,11 @@ fn create_fields(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> + 
 }
 
 /// Create the field initializers for the `new` method
-fn create_field_init(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> + '_ {
-    get_trait_methods(item_trait).map(|method| {
-        let ident = method.sig.ident.clone();
+fn create_field_init(
+    trait_method_types: &Vec<TraitMethodType>,
+) -> impl Iterator<Item = TokenStream> + '_ {
+    trait_method_types.iter().map(|method| {
+        let ident = method.signature.ident.clone();
 
         quote! {
             #ident: mock_it::Mock::new()
@@ -86,8 +92,11 @@ fn create_field_init(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream
 }
 
 /// Create the clone implementation
-fn create_clone_impl(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> + '_ {
-    get_trait_method_types(item_trait).map(|(ident, _, _)| {
+fn create_clone_impl(
+    trait_method_types: &Vec<TraitMethodType>,
+) -> impl Iterator<Item = TokenStream> + '_ {
+    trait_method_types.iter().map(|method_type| {
+        let ident = &method_type.signature.ident;
         quote! {
             #ident: self.#ident.clone()
         }
@@ -95,17 +104,21 @@ fn create_clone_impl(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream
 }
 
 /// Create the trait method implementations
-fn create_trait_impls(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> + '_ {
-    get_trait_methods(item_trait).map(|method| {
-        let (ident, args, _) = get_method_types(method);
-        let arg_names: Vec<Ident> = args
-            .into_iter()
+fn create_trait_impls(
+    trait_method_types: &Vec<TraitMethodType>,
+) -> impl Iterator<Item = TokenStream> + '_ {
+    trait_method_types.iter().map(|method_type| {
+        let ident = &method_type.signature.ident;
+
+        let arg_names: Vec<Ident> = method_type
+            .args
+            .iter()
             .map(|arg| match *arg.pat.clone() {
                 Pat::Ident(inner) => inner.ident.clone(),
                 _ => panic!("unknown argument pattern"),
             })
             .collect();
-        let signature = &method.sig;
+        let signature = &method_type.signature;
 
         quote! {
             #signature {
@@ -116,13 +129,19 @@ fn create_trait_impls(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStrea
 }
 
 /// Get the mock types for each method on the trait
-fn get_mocks(item_trait: &ItemTrait) -> impl Iterator<Item = (Ident, TokenStream)> + '_ {
-    get_trait_method_types(item_trait)
-        .map(|(ident, args, return_type)| (ident, get_mock(args, return_type)))
+fn get_mocks(
+    trait_method_types: &Vec<TraitMethodType>,
+) -> impl Iterator<Item = (Ident, TokenStream)> + '_ {
+    trait_method_types.iter().map(|method_type| {
+        (
+            method_type.signature.ident.clone(),
+            get_mock(&method_type.args, &method_type.return_type),
+        )
+    })
 }
 
 /// Get the mock type for the arguments and return type combination
-fn get_mock(args: Vec<&PatType>, return_type: Option<&Box<Type>>) -> TokenStream {
+fn get_mock(args: &Vec<PatType>, return_type: &Option<Type>) -> TokenStream {
     let arg_types: Vec<&Box<Type>> = args.into_iter().map(|arg| &arg.ty).collect();
     let return_tokens = match return_type {
         Some(return_type) => quote! { #return_type },
@@ -132,42 +151,4 @@ fn get_mock(args: Vec<&PatType>, return_type: Option<&Box<Type>>) -> TokenStream
     quote! {
         mock_it::Mock<(#(#arg_types),*), #return_tokens>
     }
-}
-
-/// Get the identifier, arguments, and return type for each method in the trait
-fn get_trait_method_types(
-    item_trait: &ItemTrait,
-) -> impl Iterator<Item = (Ident, Vec<&PatType>, Option<&Box<Type>>)> {
-    get_trait_methods(item_trait).map(get_method_types)
-}
-
-/// Get the method's identifier, arguments, and return type
-fn get_method_types(method: &TraitItemMethod) -> (Ident, Vec<&PatType>, Option<&Box<Type>>) {
-    let ident = method.sig.ident.clone();
-    let args: Vec<&PatType> = method
-        .sig
-        .inputs
-        .iter()
-        .filter_map(|arg| match arg {
-            FnArg::Typed(inner) => Some(inner),
-            _ => None,
-        })
-        .collect();
-    let return_type = match method.sig.output {
-        ReturnType::Default => None,
-        ReturnType::Type(_, ref return_type) => Some(return_type),
-    };
-
-    (ident, args, return_type)
-}
-
-/// Get the methods for the given trait
-fn get_trait_methods(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemMethod> {
-    item_trait.items.iter().filter_map(|item| {
-        if let TraitItem::Method(item_method) = item {
-            Some(item_method)
-        } else {
-            None
-        }
-    })
 }

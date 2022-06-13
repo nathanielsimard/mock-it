@@ -3,7 +3,7 @@
 // TODO: Support generic in functions signatures.
 
 mod simple {
-    use mock_it::{any, eq, mock_it, verify};
+    use mock_it::{any, eq, mock_it};
 
     #[mock_it]
     trait ATrait<T>
@@ -23,7 +23,7 @@ mod simple {
     #[test]
     fn mock_can_configure_will_return() {
         let mock = ATraitMock::new();
-        mock.a_fn_with(eq(23)).will_return(());
+        mock.when_a_fn(eq(23)).will_return(());
 
         let output = mock.a_fn(23);
 
@@ -33,16 +33,16 @@ mod simple {
     #[test]
     fn mock_can_verify_called_with() {
         let mock = ATraitMock::new();
-        mock.a_fn_with(any()).will_return(());
+        mock.when_a_fn(any()).will_return(());
 
         let _output = mock.a_fn(42);
 
-        assert!(verify(mock.a_fn_was_called_with(eq(42))));
+        assert!(mock.expect_a_fn(eq(42)).called());
     }
 }
 
 mod two_methods {
-    use mock_it::{any, eq, mock_it, verify};
+    use mock_it::{any, eq, mock_it};
 
     #[mock_it]
     trait ATrait<T>
@@ -63,7 +63,7 @@ mod two_methods {
     #[test]
     fn mock_can_configure_will_return() {
         let mock = ATraitMock::new();
-        mock.a_fn_with(eq(23)).will_return(());
+        mock.when_a_fn(eq(23)).will_return(());
 
         let output = mock.a_fn(23);
 
@@ -73,16 +73,16 @@ mod two_methods {
     #[test]
     fn mock_can_verify_called_with() {
         let mock = ATraitMock::new();
-        mock.a_fn_with(any()).will_return(());
+        mock.when_a_fn(any()).will_return(());
 
         let _output = mock.a_fn(42);
 
-        assert!(verify(mock.a_fn_was_called_with(eq(42))));
+        assert!(mock.expect_a_fn(eq(42)).called());
     }
 }
 
 mod with_lifetime {
-    use mock_it::{any, eq, mock_it, verify};
+    use mock_it::{any, eq, mock_it};
 
     #[mock_it]
     trait ATrait<'a, T>
@@ -103,7 +103,7 @@ mod with_lifetime {
     fn mock_can_configure_will_return() {
         let output_expected = "output";
         let mock = ATraitMock::new();
-        mock.a_fn_with(eq(&23)).will_return(output_expected);
+        mock.when_a_fn(eq(&23)).will_return(output_expected);
 
         let output = mock.a_fn(&23);
 
@@ -114,10 +114,10 @@ mod with_lifetime {
     fn mock_can_verify_called_with() {
         let output = "output";
         let mock = ATraitMock::new();
-        mock.a_fn_with(any()).will_return(output);
+        mock.when_a_fn(any()).will_return(output);
 
         let _ = mock.a_fn(&42);
 
-        assert!(verify(mock.a_fn_was_called_with(eq(&42))));
+        assert!(mock.expect_a_fn(eq(&42)).called());
     }
 }

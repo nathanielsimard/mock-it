@@ -76,20 +76,17 @@ impl MockFn {
 
     pub fn given_fn_name(&self) -> Ident {
         let name = self.name();
-        Ident::new(&format!("{}_with", name.to_string()), name.span())
+        Ident::new(&format!("when_{}", name.to_string()), name.span())
     }
 
     pub fn called_fn_name(&self) -> Ident {
         let name = self.name();
-        Ident::new(&format!("_called_{}", name.to_string()), name.span())
+        Ident::new(&format!("calling_{}", name.to_string()), name.span())
     }
 
     pub fn was_called_with_fn_name(&self) -> Ident {
         let name = self.name();
-        Ident::new(
-            &format!("{}_was_called_with", name.to_string()),
-            name.span(),
-        )
+        Ident::new(&format!("expect_{}", name.to_string()), name.span())
     }
 
     pub fn args(&self) -> Vec<Argument> {

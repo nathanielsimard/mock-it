@@ -1,4 +1,4 @@
-use mock_it::{eq, mock_it, verify};
+use mock_it::{eq, mock_it};
 
 #[derive(Clone, Default, PartialEq, Debug)]
 pub struct Person {
@@ -14,7 +14,7 @@ impl Person {
 
 #[mock_it]
 trait PersonFactory {
-    fn create(&self, name: String, surname: String) -> Person;
+    fn create(&self, name: &str, surname: &str) -> Person;
 }
 
 fn main() {
@@ -24,15 +24,15 @@ fn main() {
 
     let person_factory = Box::new(person_factory_mock.clone());
     person_factory_mock
-        .create_with(eq(a_name.clone()), eq(a_surname.clone()))
+        .when_create(eq(&a_name), eq(&a_surname))
         .will_return(Person::new(a_name.clone(), a_surname.clone()));
 
-    let person = person_factory.create(a_name.clone(), a_surname.clone());
+    let person = person_factory.create(&a_name, &a_surname);
 
-    assert!(verify(person_factory_mock.create_was_called_with(
-        eq(a_name.clone()),
-        eq(a_surname.clone())
-    )));
+    assert!(person_factory_mock
+        .expect_create(eq(&a_name), eq(&a_surname))
+        .times(1)
+        .called());
 
     assert_eq!(person, Person::new(a_name, a_surname))
 }

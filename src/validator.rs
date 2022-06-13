@@ -36,6 +36,9 @@ impl<I: PartialEq> Validator<I> {
 
         self
     }
+    pub fn called(self) -> bool {
+        self.result
+    }
 }
 
 #[cfg(test)]

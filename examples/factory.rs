@@ -1,4 +1,4 @@
-use mock_it::{mock_it, verify, Matcher};
+use mock_it::{eq, mock_it, verify};
 
 #[derive(Clone, Default, PartialEq, Debug)]
 pub struct Person {
@@ -24,18 +24,14 @@ fn main() {
 
     let person_factory = Box::new(person_factory_mock.clone());
     person_factory_mock
-        .create
-        .given(
-            Matcher::Val(a_name.clone()),
-            Matcher::Val(a_surname.clone()),
-        )
+        .create_with(eq(a_name.clone()), eq(a_surname.clone()))
         .will_return(Person::new(a_name.clone(), a_surname.clone()));
 
     let person = person_factory.create(a_name.clone(), a_surname.clone());
 
-    assert!(verify(person_factory_mock.create.was_called_with(
-        Matcher::Val(a_name.clone()),
-        Matcher::Val(a_surname.clone())
+    assert!(verify(person_factory_mock.create_was_called_with(
+        eq(a_name.clone()),
+        eq(a_surname.clone())
     )));
 
     assert_eq!(person, Person::new(a_name, a_surname))

@@ -24,8 +24,16 @@ pub fn mock_it(
         Item::Trait(item_trait) => item_trait,
         _ => panic!("Only traits can be mocked with the mock_it macro"),
     };
+
+    let generics = item_trait.generics.clone();
+    let generics_where = item_trait.generics.where_clause.clone();
+
     let trait_method_types = get_trait_method_types(&item_trait);
-    let mock_fns = mock_fns(&trait_method_types);
+    let mock_fns = mock_fns(trait_method_types.clone());
+    let helper_functions: Vec<TokenStream> = mock_fns
+        .iter()
+        .map(|mock_fn| mock_fn.helper_functions())
+        .collect();
 
     // Create the mock identifier
     let trait_ident = &item_trait.ident;
@@ -34,31 +42,28 @@ pub fn mock_it(
     // Generate the mock
     let fields = create_fields(&mock_fns);
     let field_init = create_field_init(&mock_fns);
-    let trait_impls = create_trait_impls(&trait_method_types);
+    let trait_impls = create_trait_impls(&mock_fns);
     let clone_impl = create_clone_impl(&trait_method_types);
 
-    let mock_fn_stream = mock_fns.into_iter().map(|mock_fn| mock_fn.token_stream);
-
     let output = quote! {
-
-        #(#mock_fn_stream)*
-
         #item_trait
 
-        pub struct #mock_ident {
+        pub struct #mock_ident #generics #generics_where {
             #(#fields),*
         }
 
-        impl #mock_ident {
+        impl #generics #mock_ident #generics #generics_where {
             pub fn new() -> Self {
                 #mock_ident {
                     #(#field_init),*
                 }
             }
 
+            #(#helper_functions)*
+
         }
 
-        impl std::clone::Clone for #mock_ident {
+        impl #generics std::clone::Clone for #mock_ident #generics #generics_where {
             fn clone(&self) -> Self {
                 #mock_ident {
                     #(#clone_impl),*
@@ -66,7 +71,7 @@ pub fn mock_it(
             }
         }
 
-        impl #trait_ident for #mock_ident {
+        impl #generics #trait_ident #generics for #mock_ident #generics #generics_where {
             #(#trait_impls)*
         }
     };
@@ -79,11 +84,12 @@ fn create_fields(mock_fns: &Vec<MockFn>) -> Vec<TokenStream> {
     mock_fns
         .iter()
         .map(|mock_fn| {
-            let mock_name = &mock_fn.struct_name;
-            let field_name = &mock_fn.fn_name;
+            let name = mock_fn.name();
+            let return_input_types = mock_fn.return_input_types();
+            let return_output_type = mock_fn.return_output_type();
 
             quote! {
-                pub #field_name: #mock_name
+                #name: mock_it::Mock<#return_input_types, #return_output_type>
             }
         })
         .collect()
@@ -94,11 +100,10 @@ fn create_field_init(mock_fns: &Vec<MockFn>) -> Vec<TokenStream> {
     mock_fns
         .iter()
         .map(|mock_fn| {
-            let mock_name = &mock_fn.struct_name;
-            let field_name = &mock_fn.fn_name;
+            let name = mock_fn.name();
 
             quote! {
-                #field_name: #mock_name::new()
+                #name: mock_it::Mock::new()
             }
         })
         .collect()
@@ -117,27 +122,20 @@ fn create_clone_impl(
 }
 
 /// Create the trait method implementations
-fn create_trait_impls(
-    trait_method_types: &Vec<TraitMethodType>,
-) -> impl Iterator<Item = TokenStream> + '_ {
-    trait_method_types.iter().map(|method_type| {
-        let ident = &method_type.signature.ident;
-
-        let arg_names: Vec<TokenStream> = method_type
-            .args
-            .iter()
-            .map(|arg| {
-                let ty = &arg.name;
-                quote! {
-                    mock_it::Matcher::Val(#ty)
-                }
-            })
-            .collect();
-        let signature = &method_type.signature;
+fn create_trait_impls(mock_fns: &Vec<MockFn>) -> impl Iterator<Item = TokenStream> + '_ {
+    mock_fns.iter().map(|mock_fn| {
+        let called_fn_name = mock_fn.called_fn_name();
+        let arg_names = mock_fn.args().into_iter().map(|arg| {
+            let name = &arg.name;
+            quote! {
+                mock_it::Matcher::Val(#name)
+            }
+        });
+        let signature = mock_fn.signature();
 
         quote! {
             #signature {
-                self.#ident.called(#(#arg_names),*)
+                self.#called_fn_name(#(#arg_names),*)
             }
         }
     })

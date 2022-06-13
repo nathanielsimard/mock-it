@@ -1,5 +1,4 @@
 use mock_it::{any, eq, mock_it, verify};
-use std::sync::Arc;
 
 #[mock_it]
 pub trait ATrait {
@@ -28,8 +27,7 @@ fn mock_no_given_should_panic() {
 #[test]
 fn mock_can_configure_will_return() {
     let mock = ATraitMock::new();
-    mock.a_fn
-        .given(eq(&23), eq(&"Allo".to_string()))
+    mock.a_fn_with(eq(&23), eq(&"Allo".to_string()))
         .will_return("my value".to_string());
 
     let output = mock.a_fn(&23, &"Allo".to_string());
@@ -40,13 +38,12 @@ fn mock_can_configure_will_return() {
 #[test]
 fn mock_can_verify_called_with() {
     let mock = ATraitMock::new();
-    mock.a_fn
-        .given(any(), any())
+    mock.a_fn_with(any(), any())
         .will_return("default".to_string());
 
     let _output = mock.a_fn(&23, &"Allo".to_string());
 
     assert!(verify(
-        mock.a_fn.was_called_with(eq(&23), eq(&"Allo".to_string()))
+        mock.a_fn_was_called_with(eq(&23), eq(&"Allo".to_string()))
     ));
 }

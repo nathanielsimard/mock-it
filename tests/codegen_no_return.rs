@@ -15,7 +15,7 @@ fn mock_no_given_should_panic() {
 #[test]
 fn mock_can_configure_will_return() {
     let mock = ATraitMock::new();
-    mock.a_fn.given(eq(23)).will_return(());
+    mock.a_fn_with(eq(23)).will_return(());
 
     let output = mock.a_fn(23);
 
@@ -25,9 +25,9 @@ fn mock_can_configure_will_return() {
 #[test]
 fn mock_can_verify_called_with() {
     let mock = ATraitMock::new();
-    mock.a_fn.given(any()).will_return(());
+    mock.a_fn_with(any()).will_return(());
 
     let _output = mock.a_fn(42);
 
-    assert!(verify(mock.a_fn.was_called_with(eq(42))));
+    assert!(verify(mock.a_fn_was_called_with(eq(42))));
 }

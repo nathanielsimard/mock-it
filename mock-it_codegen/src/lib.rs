@@ -43,6 +43,7 @@ pub fn mock_it(
     let field_init = create_field_init(&mock_fns);
     let trait_impls = create_trait_impls(&mock_fns);
     let clone_impl = create_clone_impl(&mock_fns);
+    let async_attribute = async_attribute(&mock_fns);
 
     let generics = add_generics(&item_trait.generics);
     let (generics_impl, generics_ty, generics_where) = generics.split_for_impl();
@@ -73,12 +74,23 @@ pub fn mock_it(
             }
         }
 
+        #async_attribute
         impl #generics_impl #trait_ident #generics_ty for #mock_ident #generics_ty #generics_where {
             #(#trait_impls)*
         }
     };
 
     output.into()
+}
+
+fn async_attribute(mock_fns: &Vec<MockFn>) -> TokenStream {
+    for mock_fn in mock_fns.iter() {
+        if mock_fn.is_async() {
+            return quote! { #[async_trait::async_trait] }.into();
+        }
+    }
+
+    quote! {}.into()
 }
 
 /// Create the struct fields

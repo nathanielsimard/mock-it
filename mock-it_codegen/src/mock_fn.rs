@@ -16,6 +16,14 @@ impl MockFn {
         Self { method }
     }
 
+    pub fn is_async(&self) -> bool {
+        if let Some(_) = self.method.signature.asyncness {
+            return true;
+        }
+
+        false
+    }
+
     pub fn name(&self) -> Ident {
         self.method.signature.ident.clone()
     }

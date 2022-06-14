@@ -1,14 +1,20 @@
 #!/bin/bash
 
-echo "Publishing mock-it_codegen ..."
-cd mock-it_codegen/
-cargo publish --token ${CRATES_IO_API_TOKEN}
-echo "Sucessfully published mock-it_codegen"
+crate=$1
 
-echo "Waiting 10 seconds for mock-it_codegen to be available ..."
-sleep 10
+case ${crate} in
+    mock-it_codegen)
+        cd mock-it_codegen/
+        echo "Publishing mock-it_codegen ..."
+        ;;
+    mock-it)
+        echo "Publishing mock-it ..."
+        ;;
+    *)
+        echo "Crate ${crate} unknown"
+        exit 1
+        ;;
+esac
 
-echo "Publishing mock-it ..."
-cd ../
-cargo publish --token ${CRATES_IO_API_TOKEN}
-echo "Sucessfully published mock-it"
+cargo publish --token ${CRATES_IO_API_TOKEN} || exit 1
+echo "Sucessfully published ${crate}"

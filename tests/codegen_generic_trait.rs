@@ -6,10 +6,7 @@ mod simple {
     use mock_it::{any, eq, mock_it};
 
     #[mock_it]
-    trait ATrait<T>
-    where
-        T: Clone + PartialEq,
-    {
+    trait ATrait<T> {
         fn a_fn(&self, arg1: T);
     }
 
@@ -45,10 +42,7 @@ mod two_methods {
     use mock_it::{any, eq, mock_it};
 
     #[mock_it]
-    trait ATrait<T>
-    where
-        T: Clone + PartialEq,
-    {
+    trait ATrait<T> {
         fn a_fn(&self, arg1: T);
         fn another_fn(&self, arg1: &str);
     }
@@ -85,10 +79,7 @@ mod with_lifetime {
     use mock_it::{any, eq, mock_it};
 
     #[mock_it]
-    trait ATrait<'a, T>
-    where
-        T: Clone + PartialEq,
-    {
+    trait ATrait<'a, T> {
         fn a_fn(&self, arg1: &'a T) -> &'a str;
     }
 

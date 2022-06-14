@@ -1,6 +1,6 @@
-use mock_it::{any, eq, mock_it};
+use mock_it::{any, eq};
 
-#[mock_it]
+#[cfg_attr(test, mock_it::mock_it)]
 pub trait ATrait {
     fn a_fn(&self, sized1: &usize, sized2: &String) -> String;
 }

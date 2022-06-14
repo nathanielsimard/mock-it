@@ -1,13 +1,15 @@
 extern crate proc_macro;
 
+mod generics;
 mod mock_fn;
 mod trait_method;
 
+use generics::add_generics;
 use mock_fn::{mock_fns, MockFn};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, Ident, Item};
-use trait_method::{get_trait_method_types, TraitMethodType};
+use trait_method::get_trait_method_types;
 
 /// Generate a mock struct from a trait. The mock struct will be named after the
 /// trait, with "Mock" appended.
@@ -25,9 +27,6 @@ pub fn mock_it(
         _ => panic!("Only traits can be mocked with the mock_it macro"),
     };
 
-    let generics = item_trait.generics.clone();
-    let generics_where = item_trait.generics.where_clause.clone();
-
     let trait_method_types = get_trait_method_types(&item_trait);
     let mock_fns = mock_fns(trait_method_types.clone());
     let helper_functions: Vec<TokenStream> = mock_fns
@@ -43,16 +42,19 @@ pub fn mock_it(
     let fields = create_fields(&mock_fns);
     let field_init = create_field_init(&mock_fns);
     let trait_impls = create_trait_impls(&mock_fns);
-    let clone_impl = create_clone_impl(&trait_method_types);
+    let clone_impl = create_clone_impl(&mock_fns);
+
+    let generics = add_generics(&item_trait.generics);
+    let (generics_impl, generics_ty, generics_where) = generics.split_for_impl();
 
     let output = quote! {
         #item_trait
 
-        pub struct #mock_ident #generics #generics_where {
+        pub struct #mock_ident #generics_ty #generics_where {
             #(#fields),*
         }
 
-        impl #generics #mock_ident #generics #generics_where {
+        impl #generics_impl #mock_ident #generics_ty #generics_where {
             pub fn new() -> Self {
                 #mock_ident {
                     #(#field_init),*
@@ -63,7 +65,7 @@ pub fn mock_it(
 
         }
 
-        impl #generics std::clone::Clone for #mock_ident #generics #generics_where {
+        impl #generics_impl std::clone::Clone for #mock_ident #generics_ty #generics_where {
             fn clone(&self) -> Self {
                 #mock_ident {
                     #(#clone_impl),*
@@ -71,7 +73,7 @@ pub fn mock_it(
             }
         }
 
-        impl #generics #trait_ident #generics for #mock_ident #generics #generics_where {
+        impl #generics_impl #trait_ident #generics_ty for #mock_ident #generics_ty #generics_where {
             #(#trait_impls)*
         }
     };
@@ -110,11 +112,9 @@ fn create_field_init(mock_fns: &Vec<MockFn>) -> Vec<TokenStream> {
 }
 
 /// Create the clone implementation
-fn create_clone_impl(
-    trait_method_types: &Vec<TraitMethodType>,
-) -> impl Iterator<Item = TokenStream> + '_ {
-    trait_method_types.iter().map(|method_type| {
-        let ident = &method_type.signature.ident;
+fn create_clone_impl(mock_fns: &Vec<MockFn>) -> impl Iterator<Item = TokenStream> + '_ {
+    mock_fns.iter().map(|mock_fn| {
+        let ident = &mock_fn.signature().ident;
         quote! {
             #ident: self.#ident.clone()
         }

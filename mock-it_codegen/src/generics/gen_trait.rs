@@ -14,7 +14,12 @@ impl MockItTraitGenerics {
         }
     }
 
-    pub fn configure_input_predicates(&mut self, mock_fns: &Vec<MockFn>) {
+    pub fn configure_predicates(&mut self, mock_fns: &Vec<MockFn>) {
+        self.configure_input_predicates(mock_fns);
+        self.configure_output_predicates(mock_fns);
+    }
+
+    fn configure_input_predicates(&mut self, mock_fns: &Vec<MockFn>) {
         let mut input_types = Vec::new();
 
         for mock_fn in mock_fns {
@@ -28,6 +33,23 @@ impl MockItTraitGenerics {
         input_types
             .into_iter()
             .map(|ty| parse2(quote! { #ty: Clone + PartialEq }).unwrap())
+            .for_each(|predicate| self.generics.add_predicates(predicate));
+    }
+
+    fn configure_output_predicates(&mut self, mock_fns: &Vec<MockFn>) {
+        let mut output_types = Vec::new();
+
+        for mock_fn in mock_fns {
+            if let Some(ty) = mock_fn.output_original_type() {
+                if let Some(generic_ty) = self.generics.find_type_ident(&ty) {
+                    output_types.push(generic_ty);
+                }
+            }
+        }
+
+        output_types
+            .into_iter()
+            .map(|ty| parse2(quote! { #ty: Clone }).unwrap())
             .for_each(|predicate| self.generics.add_predicates(predicate));
     }
 }

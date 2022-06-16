@@ -86,7 +86,7 @@ pub fn mock_it(
 
 fn configure_trait_generics(mock_fns: &Vec<MockFn>, generics: &Generics) -> Generics {
     let mut trait_generics = MockItTraitGenerics::new(generics);
-    trait_generics.configure_input_predicates(&mock_fns);
+    trait_generics.configure_predicates(&mock_fns);
     trait_generics.into()
 }
 

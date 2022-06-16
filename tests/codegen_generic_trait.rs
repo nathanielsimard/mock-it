@@ -120,15 +120,15 @@ mod output_not_partial_eq {
     pub struct Output;
 
     #[mock_it]
-    trait ATrait<T> {
-        fn a_fn(&self, arg1: T) -> Output;
+    trait ATrait<T, O> {
+        fn a_fn(&self, arg1: T) -> O;
     }
 
     #[test]
     #[should_panic]
     fn mock_no_when_should_panic() {
         let mock = ATraitMock::new();
-        let _output = mock.a_fn(23);
+        let _output: Output = mock.a_fn(23);
     }
 
     #[test]

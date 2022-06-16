@@ -90,6 +90,13 @@ impl MockFn {
         }
     }
 
+    pub fn output_original_type(&self) -> Option<Type> {
+        match &self.method.return_type {
+            Some(ty) => Some(ty.clone()),
+            None => None,
+        }
+    }
+
     pub fn when_fn_name(&self) -> Ident {
         let name = self.name();
         Ident::new(&format!("when_{}", name.to_string()), name.span())

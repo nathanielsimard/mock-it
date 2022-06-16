@@ -1,38 +1,41 @@
-use mock_it::{eq, mock_it};
+use mock_it::mock_it;
 
-#[derive(Clone, Default, PartialEq, Debug)]
-pub struct Person {
-    name: String,
-    surname: String,
-}
-
-impl Person {
-    fn new(name: String, surname: String) -> Person {
-        Person { name, surname }
-    }
+fn main() {
+    println!("Hello, world!");
 }
 
 #[mock_it]
-trait PersonFactory {
-    fn create(&self, name: &str, surname: &str) -> Person;
+trait Nurse {
+    fn heal(&self, pokemon: Pokemon) -> Pokemon;
 }
 
-fn main() {
-    let person_factory_mock = PersonFactoryMock::new();
-    let a_name = "John".to_string();
-    let a_surname = "Bouchard".to_string();
+#[derive(PartialEq, Clone)]
+pub struct Pokemon {
+    hp: i32,
+}
 
-    let person_factory = Box::new(person_factory_mock.clone());
-    person_factory_mock
-        .when_create(eq(&a_name), eq(&a_surname))
-        .will_return(Person::new(a_name.clone(), a_surname.clone()));
+struct Hospital {
+    nurse: dyn Nurse,
+}
 
-    let person = person_factory.create(&a_name, &a_surname);
+impl Hospital {
+    fn heal(&self, pokemon: Pokemon) -> Pokemon {
+        self.nurse.heal(pokemon)
+    }
+}
 
-    assert!(person_factory_mock
-        .expect_create(eq(&a_name), eq(&a_surname))
-        .times(1)
-        .called());
+#[test]
+fn can_heal_pokemon() {
+    let joy = NurseMock {};
 
-    assert_eq!(person, Person::new(a_name, a_surname))
+    let hospital = Hospital { nurse: joy };
+
+    let pikachu_no_hp = Pokemon { hp: 0 };
+    let pikachu_no_hp = Pokemon { hp: 100 };
+
+    joy.when_heal(&pikachu_no_hp).will_return(&pikachu_full_hp);
+
+    let healed_pikachu = hospital.heal(pikachu_no_hp);
+
+    assert!(healed_pikachu, pikachu_full_hp)
 }

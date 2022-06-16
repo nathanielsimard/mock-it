@@ -4,11 +4,11 @@ mod generics;
 mod mock_fn;
 mod trait_method;
 
-use generics::add_generics;
+use generics::MockItTraitGenerics;
 use mock_fn::{mock_fns, MockFn};
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Ident, Item};
+use syn::{parse_macro_input, Generics, Ident, Item};
 use trait_method::get_trait_method_types;
 
 /// Generate a mock struct from a trait. The mock struct will be named after the
@@ -45,7 +45,8 @@ pub fn mock_it(
     let clone_impl = create_clone_impl(&mock_fns);
     let async_attribute = async_attribute(&mock_fns);
 
-    let generics = add_generics(&item_trait.generics);
+    // Configure trait generics
+    let generics = configure_trait_generics(&mock_fns, &item_trait.generics);
     let (generics_impl, generics_ty, generics_where) = generics.split_for_impl();
 
     let output = quote! {
@@ -81,6 +82,12 @@ pub fn mock_it(
     };
 
     output.into()
+}
+
+fn configure_trait_generics(mock_fns: &Vec<MockFn>, generics: &Generics) -> Generics {
+    let mut trait_generics = MockItTraitGenerics::new(generics);
+    trait_generics.configure_predicates(&mock_fns);
+    trait_generics.into()
 }
 
 fn async_attribute(mock_fns: &Vec<MockFn>) -> TokenStream {

@@ -1,7 +1,7 @@
 use crate::trait_method::{Argument, TraitMethodType};
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{Ident, Signature};
+use syn::{Ident, Signature, Type};
 
 pub struct MockFn {
     method: TraitMethodType,
@@ -30,6 +30,14 @@ impl MockFn {
 
     pub fn signature(&self) -> Signature {
         self.method.signature.clone()
+    }
+
+    pub fn input_original_types(&self) -> Vec<Type> {
+        self.method
+            .args
+            .iter()
+            .map(|arg| arg.original_type.clone())
+            .collect()
     }
 
     pub fn return_input_types(&self) -> TokenStream {

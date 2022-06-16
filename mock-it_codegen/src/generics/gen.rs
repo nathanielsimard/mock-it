@@ -20,7 +20,7 @@ impl MockItGenerics {
             .collect()
     }
 
-    pub fn add_predicates(&mut self, predicate: WherePredicate) {
+    pub fn add_predicate(&mut self, predicate: WherePredicate) {
         let where_clause: WhereClause = match &self.generics.where_clause {
             Some(val) => parse2(quote! {
                 #val

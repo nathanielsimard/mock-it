@@ -33,7 +33,7 @@ impl MockItTraitGenerics {
         input_types
             .into_iter()
             .map(|ty| parse2(quote! { #ty: Clone + PartialEq }).unwrap())
-            .for_each(|predicate| self.generics.add_predicates(predicate));
+            .for_each(|predicate| self.generics.add_predicate(predicate));
     }
 
     fn configure_output_predicates(&mut self, mock_fns: &Vec<MockFn>) {
@@ -50,7 +50,7 @@ impl MockItTraitGenerics {
         output_types
             .into_iter()
             .map(|ty| parse2(quote! { #ty: Clone }).unwrap())
-            .for_each(|predicate| self.generics.add_predicates(predicate));
+            .for_each(|predicate| self.generics.add_predicate(predicate));
     }
 }
 

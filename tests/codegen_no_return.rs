@@ -7,7 +7,7 @@ trait ATrait {
 
 #[test]
 #[should_panic]
-fn mock_no_given_should_panic() {
+fn mock_no_when_should_panic() {
     let mock = ATraitMock::new();
     let _output = mock.a_fn(23);
 }

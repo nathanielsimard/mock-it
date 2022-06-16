@@ -18,7 +18,7 @@ fn mock_can_be_cloned() {
 
 #[test]
 #[should_panic]
-fn mock_no_given_should_panic() {
+fn mock_no_when_should_panic() {
     let mock = ATraitMock::new();
     let output = mock.a_fn(&23, &"Allo".to_string());
     assert_eq!(output, "my value".to_string());

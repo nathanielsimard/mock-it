@@ -1,6 +1,6 @@
-use crate::given::Given;
 use crate::rule::Rule;
 use crate::validator::*;
+use crate::when::When;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -26,20 +26,20 @@ impl<I: PartialEq, O: Clone> Mock<I, O> {
         }
     }
 
-    pub fn given(&self, input: I) -> Given<I, O> {
-        Given::new(input, self.rules.clone())
+    pub fn when(&self, input: I) -> When<I, O> {
+        When::new(input, self.rules.clone())
     }
 
     pub fn called(&self, input: I) -> O {
-        // Get the given value for this input
+        // Get the when value for this input
         let rules = self.rules.lock().unwrap();
-        let given_value = rules.iter().find(|value| value.input == input);
+        let when_value = rules.iter().find(|value| value.input == input);
 
         // Record this call
         self.calls.lock().unwrap().push(input);
 
-        // Return the given value, or fail if there is no given value
-        match given_value {
+        // Return the when value, or fail if there is no when value
+        match when_value {
             Some(value) => value.output.clone(),
             None => panic!("Mock called with unexpected input"),
         }
@@ -85,9 +85,9 @@ mod test {
     #[test]
     fn mock_output() {
         let mock = MyMock::new();
-        mock.int_to_string.given(65).will_return(String::from("65"));
-        mock.int_to_string.given(63).will_return(String::from("63"));
-        mock.int_to_string.given(-1).will_return(String::from("-1"));
+        mock.int_to_string.when(65).will_return(String::from("65"));
+        mock.int_to_string.when(63).will_return(String::from("63"));
+        mock.int_to_string.when(-1).will_return(String::from("-1"));
         let a_trait = Box::new(mock);
 
         assert_eq!("65", a_trait.int_to_string(65));
@@ -99,9 +99,9 @@ mod test {
     #[test]
     fn was_called_with() {
         let mock = MyMock::new();
-        mock.int_to_string.given(65).will_return(String::from(""));
-        mock.int_to_string.given(63).will_return(String::from(""));
-        mock.int_to_string.given(-1).will_return(String::from(""));
+        mock.int_to_string.when(65).will_return(String::from(""));
+        mock.int_to_string.when(63).will_return(String::from(""));
+        mock.int_to_string.when(-1).will_return(String::from(""));
         let a_trait = Box::new(mock.clone());
 
         a_trait.int_to_string(65);
@@ -117,7 +117,7 @@ mod test {
     #[test]
     fn given_mock_called_5_times_when_times_5_then_return_true_false_otherwise() {
         let mock = MyMock::new();
-        mock.int_to_string.given(65).will_return(String::from("65"));
+        mock.int_to_string.when(65).will_return(String::from("65"));
         let a_trait = Box::new(mock.clone());
 
         for _ in 0..5 {

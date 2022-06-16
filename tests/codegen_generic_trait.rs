@@ -12,7 +12,7 @@ mod simple {
 
     #[test]
     #[should_panic]
-    fn mock_no_given_should_panic() {
+    fn mock_no_when_should_panic() {
         let mock = ATraitMock::new();
         let _output = mock.a_fn(23);
     }
@@ -49,7 +49,7 @@ mod two_methods {
 
     #[test]
     #[should_panic]
-    fn mock_no_given_should_panic() {
+    fn mock_no_when_should_panic() {
         let mock = ATraitMock::new();
         let _output = mock.a_fn(23);
     }
@@ -85,7 +85,7 @@ mod with_lifetime {
 
     #[test]
     #[should_panic]
-    fn mock_no_given_should_panic() {
+    fn mock_no_when_should_panic() {
         let mock = ATraitMock::new();
         let _output = mock.a_fn(&23);
     }

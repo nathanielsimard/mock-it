@@ -9,7 +9,7 @@ trait ATrait {
 
 #[tokio::test]
 #[should_panic]
-async fn mock_no_given_should_panic() {
+async fn mock_no_when_should_panic() {
     let mock = ATraitMock::new();
     let _output = mock.a_fn(23).await;
 }

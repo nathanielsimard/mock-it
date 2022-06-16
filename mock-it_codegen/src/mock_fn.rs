@@ -62,12 +62,12 @@ impl MockFn {
     }
 
     pub fn helper_functions(&self) -> TokenStream {
-        let given_fn = self.given_fn();
+        let when_fn = self.when_fn();
         let called_fn = self.called_fn();
         let was_called_with_fn = self.was_called_with_fn();
 
         let output = quote! {
-            #given_fn
+            #when_fn
             #called_fn
             #was_called_with_fn
         };
@@ -82,7 +82,7 @@ impl MockFn {
         }
     }
 
-    pub fn given_fn_name(&self) -> Ident {
+    pub fn when_fn_name(&self) -> Ident {
         let name = self.name();
         Ident::new(&format!("when_{}", name.to_string()), name.span())
     }
@@ -101,9 +101,9 @@ impl MockFn {
         self.method.args.clone()
     }
 
-    fn given_fn(&self) -> TokenStream {
+    fn when_fn(&self) -> TokenStream {
         let name = self.name();
-        let fn_name = self.given_fn_name();
+        let fn_name = self.when_fn_name();
         let args = self.args_input_types();
         let args_input_mapping = self.args_input_mapping();
         let return_input_types = self.return_input_types();
@@ -111,9 +111,9 @@ impl MockFn {
         let output_type = self.return_output_type();
 
         let quote = quote! {
-            pub fn #fn_name(&self, #(#args),*) -> mock_it::Given<#return_input_types, #output_type> {
+            pub fn #fn_name(&self, #(#args),*) -> mock_it::When<#return_input_types, #output_type> {
                 #(#args_input_mapping);*
-                self.#name.given((#(#return_input_names),*))
+                self.#name.when((#(#return_input_names),*))
             }
         };
         quote.into()

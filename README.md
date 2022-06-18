@@ -1,7 +1,9 @@
-<div style="display: flex; justify-content: left; align-items: center; padding-bottom: 32px;">
-    <img src="./assets/mock-it.svg" width="100px" >
+<div style="display: flex; justify-content: left; align-items: center;">
+    <img src="./assets/mock-it.svg" width="100px" />
     <span style="margin-left: 24px;font-size: 48px; font-weight: 500;">mock-it</span>
 </div>
+
+<br/>
 
 [![Current Crates.io Version](https://img.shields.io/crates/v/mock-it.svg)](https://crates.io/crates/mock-it)
 

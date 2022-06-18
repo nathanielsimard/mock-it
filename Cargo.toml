@@ -1,6 +1,6 @@
 [package]
 name = "mock-it"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["nathanielsimard <nathaniel.simard@outlook.com>"]
 description = "Make mocking reliable"
 repository = "https://github.com/nathanielsimard/mock-it"
@@ -11,7 +11,7 @@ categories = ["development-tools::testing"]
 edition = "2021"
 
 [dependencies]
-mock-it_codegen = { version = "0.3.0", path = "./mock-it_codegen" }
+mock-it_codegen = { version = "0.4.0", path = "./mock-it_codegen" }
 
 [dev-dependencies]
 async-trait = "0.1.5"

@@ -1,6 +1,6 @@
 <div style="display: flex; justify-content: left; align-items: center;">
     <img src="./assets/mock-it.svg" width="100px" />
-    <span style="margin-left: 24px;font-size: 48px; font-weight: 500;">mock-it</span>
+    <h1>mock-it</h1>
 </div>
 
 <br/>
@@ -85,5 +85,5 @@ mod tests {
 
 ## Constraints
 
-* Traits inputs must implement both PartialEq and Clone
-* Traits ouput must implement both Clone
+* Trait inputs must implement both PartialEq and Clone
+* Trait ouput must implement Clone

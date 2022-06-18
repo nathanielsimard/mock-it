@@ -1,27 +1,5 @@
-<div style="display: flex; justify-content: left; align-items: center; padding-bottom: 32px;">
-    <img src="./assets/mock-it.svg" width="100px" >
-    <span style="margin-left: 24px;font-size: 48px; font-weight: 500;">mock-it</span>
-</div>
-
-[![Current Crates.io Version](https://img.shields.io/crates/v/mock-it.svg)](https://crates.io/crates/mock-it)
-
-> Mock it, don't mock all 🙃
-
-Our goal is to enhance the DX behind mocking your depedencies when you test.
-It lets you use a syntax closer to `given` `when` `then` instead of having to
-assert your `then` **BEFORE** you call your function.
-
-## Features
-
-* Intuitive usage 😌
-* Mock your traits 🦾
-* Configure your mocks 👷‍♀️
-* Separate configuration from assertion 🕵️‍♀️
-
-## Example
-
-``` rust
-#[cfg_attr(test, mock_it::mock_it)]
+// #[cfg_attr(test, mock_it::mock_it)]
+#[mock_it::mock_it]
 trait Nurse {
     fn heal(&self, pokemon: Pokemon) -> Result<Pokemon, String>;
 }
@@ -50,19 +28,20 @@ impl PokemonCenter {
     }
 }
 
-#[cfg(test)]
-mod tests {
+// #[cfg(test)]
+pub mod tests {
     use super::*;
     use mock_it::{any, eq};
 
-    #[test]
-    fn can_heal_pokemon() {
+    // #[test]
+    pub fn can_heal_pokemon() {
         // given
         let pikachu_no_hp = Pokemon { hp: 0 };
         let pikachu_full_hp = Pokemon { hp: 100 };
 
         let nurse_joy = NurseMock::new();
-        nurse_joy.when_heal(eq(pikachu_no_hp.clone()))
+        nurse_joy
+            .when_heal(eq(pikachu_no_hp.clone()))
             .will_return(Ok(pikachu_full_hp.clone()));
 
         let mut pokemon_center = PokemonCenter {
@@ -79,9 +58,7 @@ mod tests {
         assert!(nurse_joy.expect_heal(any()).times(1).called());
     }
 }
-```
 
-## Constraints
-
-* Traits inputs must implement both PartialEq and Clone
-* Traits ouput must implement both Clone
+fn main() {
+    tests::can_heal_pokemon();
+}

@@ -18,7 +18,7 @@ impl<I, O> Clone for Mock<I, O> {
     }
 }
 
-impl<I: PartialEq, O: Clone> Mock<I, O> {
+impl<I: PartialEq + std::fmt::Debug, O: Clone> Mock<I, O> {
     pub fn new() -> Mock<I, O> {
         Mock {
             calls: Arc::new(Mutex::new(Vec::new())),
@@ -31,6 +31,8 @@ impl<I: PartialEq, O: Clone> Mock<I, O> {
     }
 
     pub fn called(&self, input: I) -> O {
+        let input_str = format!("{:?}", input);
+
         // Get the when value for this input
         let rules = self.rules.lock().unwrap();
         let when_value = rules.iter().find(|value| value.input == input);
@@ -41,7 +43,7 @@ impl<I: PartialEq, O: Clone> Mock<I, O> {
         // Return the when value, or fail if there is no when value
         match when_value {
             Some(value) => value.output.clone(),
-            None => panic!("Mock called with unexpected input"),
+            None => panic!("Mock called with unexpected input: {:?}", input_str),
         }
     }
 

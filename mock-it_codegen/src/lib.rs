@@ -40,7 +40,7 @@ pub fn mock_it(
 
     // Generate the mock
     let fields = create_fields(&mock_fns);
-    let field_init = create_field_init(&mock_fns);
+    let field_init = create_field_init(&mock_ident, &mock_fns);
     let trait_impls = create_trait_impls(&mock_fns);
     let clone_impl = create_clone_impl(&mock_fns);
     let async_attribute = async_attribute(&mock_fns);
@@ -117,14 +117,14 @@ fn create_fields(mock_fns: &Vec<MockFn>) -> Vec<TokenStream> {
 }
 
 /// Create the field initializers for the `new` method
-fn create_field_init(mock_fns: &Vec<MockFn>) -> Vec<TokenStream> {
+fn create_field_init(mock_ident: &Ident, mock_fns: &Vec<MockFn>) -> Vec<TokenStream> {
     mock_fns
         .iter()
         .map(|mock_fn| {
             let name = mock_fn.name();
 
             quote! {
-                #name: mock_it::Mock::new()
+                #name: mock_it::Mock::new(format!("{}.{}", stringify!(#mock_ident), stringify!(#name)))
             }
         })
         .collect()

@@ -5,6 +5,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 pub struct Mock<I, O> {
+    name: String,
     calls: Arc<Mutex<Vec<I>>>,
     rules: Arc<Mutex<Vec<Rule<I, O>>>>,
 }
@@ -12,6 +13,7 @@ pub struct Mock<I, O> {
 impl<I, O> Clone for Mock<I, O> {
     fn clone(&self) -> Mock<I, O> {
         Mock {
+            name: self.name.clone(),
             calls: self.calls.clone(),
             rules: self.rules.clone(),
         }
@@ -19,8 +21,9 @@ impl<I, O> Clone for Mock<I, O> {
 }
 
 impl<I: PartialEq + std::fmt::Debug, O: Clone> Mock<I, O> {
-    pub fn new() -> Mock<I, O> {
+    pub fn new(name: String) -> Mock<I, O> {
         Mock {
+            name,
             calls: Arc::new(Mutex::new(Vec::new())),
             rules: Arc::new(Mutex::new(Vec::new())),
         }
@@ -43,7 +46,10 @@ impl<I: PartialEq + std::fmt::Debug, O: Clone> Mock<I, O> {
         // Return the when value, or fail if there is no when value
         match when_value {
             Some(value) => value.output.clone(),
-            None => panic!("Mock called with unexpected input: {:?}", input_str),
+            None => panic!(
+                "Mock \"{}\" called with unexpected input: {:?}",
+                self.name, input_str
+            ),
         }
     }
 
@@ -71,7 +77,7 @@ mod test {
     impl MyMock {
         fn new() -> MyMock {
             MyMock {
-                int_to_string: Mock::new(),
+                int_to_string: Mock::new("AMockName".to_string()),
             }
         }
     }

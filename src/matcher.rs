@@ -1,7 +1,15 @@
-#[derive(Debug)]
 pub enum Matcher<I> {
     Val(I),
     Any,
+}
+
+impl<I: std::fmt::Debug> std::fmt::Debug for Matcher<I> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Val(val) => write!(f, "{:?}", val),
+            Self::Any => write!(f, "Any"),
+        }
+    }
 }
 
 impl<I: PartialEq> PartialEq for Matcher<I> {

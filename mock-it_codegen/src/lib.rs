@@ -52,6 +52,7 @@ pub fn mock_it(
     let output = quote! {
         #item_trait
 
+        #[derive(Debug)]
         pub struct #mock_ident #generics_ty #generics_where {
             #(#fields),*
         }

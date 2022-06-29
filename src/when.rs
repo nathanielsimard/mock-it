@@ -6,7 +6,7 @@ pub struct When<I, O> {
     rules: Arc<Mutex<Vec<Rule<I, O>>>>,
 }
 
-impl<I, O> When<I, O> {
+impl<I: PartialEq, O> When<I, O> {
     pub(crate) fn new(input: I, rules: Arc<Mutex<Vec<Rule<I, O>>>>) -> Self {
         When { input, rules }
     }
@@ -14,14 +14,24 @@ impl<I, O> When<I, O> {
     /// Use the when return value when the mock is called with the specified
     /// input
     pub fn will_return(self, value: O) {
-        self.rules
-            .lock()
-            .unwrap()
-            .push(Rule::new(self.input, value));
+        let mut rules_locked = self.rules.lock().unwrap();
+        let when_value = rules_locked
+            .iter()
+            .enumerate()
+            .find(|(_i, value)| value.input == self.input);
+
+        let rule = Rule::new(self.input, value);
+        match when_value {
+            Some((index, _value)) => {
+                let _old_rule = std::mem::replace(&mut rules_locked[index], rule);
+                ()
+            }
+            None => rules_locked.push(rule),
+        }
     }
 }
 
-impl<I, O: Default> When<I, O> {
+impl<I: PartialEq, O: Default> When<I, O> {
     /// Use `Default::default` when the mock is called with the specified input
     pub fn will_return_default(self) {
         self.will_return(O::default())
@@ -45,6 +55,27 @@ mod tests {
 
         let rules = rules.lock().unwrap();
         assert_eq!(*rules, vec![Rule::new("hello", true)]);
+    }
+
+    #[test]
+    fn when_input_already_match_another_rule_replace_old_rule() {
+        let rules = Arc::new(Mutex::new(Vec::new()));
+        let when = When::new("sameinput", rules.clone());
+
+        let assert_rule = |input, output| {
+            let rules_locked = rules.lock().unwrap();
+            let rule = rules_locked.get(0).unwrap();
+            assert_eq!(rules_locked.len(), 1, "Rules should have only one rule.");
+            assert_eq!(rule.input, input);
+            assert_eq!(rule.output, output);
+        };
+
+        when.will_return("rule1");
+        assert_rule("sameinput", "rule1");
+
+        let when = When::new("sameinput", rules.clone());
+        when.will_return("rule2");
+        assert_rule("sameinput", "rule2");
     }
 
     /// When `Given::will_return_default` is called, a rule is made with the

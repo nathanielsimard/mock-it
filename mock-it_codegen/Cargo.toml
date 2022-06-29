@@ -1,6 +1,6 @@
 [package]
 name = "mock-it_codegen"
-version = "0.7.0"
+version = "0.8.0"
 authors = ["Mcat12 <mark.drobnak@gmail.com>", "nathanielsimard <nathaniel.simard@outlook.com>"]
 description = "Codegen for mock-it"
 repository = "https://github.com/nathanielsimard/mock-it"

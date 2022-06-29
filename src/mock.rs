@@ -4,7 +4,6 @@ use crate::when::When;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-#[derive(Debug)]
 pub struct Mock<I, O> {
     name: String,
     calls: Arc<Mutex<Vec<I>>>,

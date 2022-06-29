@@ -52,7 +52,6 @@ pub fn mock_it(
     let output = quote! {
         #item_trait
 
-        #[derive(Debug)]
         pub struct #mock_ident #generics_ty #generics_where {
             #(#fields),*
         }
@@ -65,7 +64,6 @@ pub fn mock_it(
             }
 
             #(#helper_functions)*
-
         }
 
         impl #generics_impl std::clone::Clone for #mock_ident #generics_ty #generics_where {

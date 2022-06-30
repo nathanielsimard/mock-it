@@ -82,6 +82,7 @@ mod tests {
     }
 }
 ```
+[Further use cases](/examples)
 
 ## Constraints
 

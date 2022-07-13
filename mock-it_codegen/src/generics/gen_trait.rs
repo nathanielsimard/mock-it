@@ -49,7 +49,7 @@ impl MockItTraitGenerics {
 
         output_types
             .into_iter()
-            .map(|ty| parse2(quote! { #ty: Clone }).unwrap())
+            .map(|ty| parse2(quote! { #ty: Clone + std::fmt::Debug }).unwrap())
             .for_each(|predicate| self.generics.add_predicate(predicate));
     }
 }

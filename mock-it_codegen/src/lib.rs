@@ -52,6 +52,7 @@ pub fn mock_it(
     let output = quote! {
         #item_trait
 
+        #[derive(Debug)]
         pub struct #mock_ident #generics_ty #generics_where {
             #(#fields),*
         }
@@ -71,6 +72,12 @@ pub fn mock_it(
                 #mock_ident {
                     #(#clone_impl),*
                 }
+            }
+        }
+
+        impl #generics_impl PartialEq for #mock_ident #generics_ty #generics_where {
+            fn eq(&self, other: &Self) -> bool {
+                format!("{:?}", self) == format!("{:?}", other)
             }
         }
 

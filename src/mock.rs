@@ -4,6 +4,7 @@ use crate::when::When;
 use std::sync::Arc;
 use std::sync::Mutex;
 
+#[derive(Debug)]
 pub struct Mock<I, O> {
     name: String,
     calls: Arc<Mutex<Vec<I>>>,
@@ -20,7 +21,7 @@ impl<I, O> Clone for Mock<I, O> {
     }
 }
 
-impl<I: PartialEq + std::fmt::Debug, O: Clone> Mock<I, O> {
+impl<I, O> Mock<I, O> {
     pub fn new(name: String) -> Mock<I, O> {
         Mock {
             name,
@@ -28,11 +29,15 @@ impl<I: PartialEq + std::fmt::Debug, O: Clone> Mock<I, O> {
             rules: Arc::new(Mutex::new(Vec::new())),
         }
     }
+}
 
+impl<I, O: Clone> Mock<I, O> {
     pub fn when(&self, input: I) -> When<I, O> {
         When::new(input, self.rules.clone())
     }
+}
 
+impl<I: PartialEq + std::fmt::Debug, O: Clone> Mock<I, O> {
     pub fn called(&self, input: I) -> O {
         let input_str = format!("{:?}", input);
 
@@ -47,17 +52,16 @@ impl<I: PartialEq + std::fmt::Debug, O: Clone> Mock<I, O> {
         match when_value {
             Some(value) => value.output.clone(),
             None => panic!(
-                "Mock \"{}\" called with unexpected input: {:?}",
+                "Mock \"{}\" called with unexpected input: {:?}, did you forget to configure your mock ?",
                 self.name, input_str
             ),
         }
     }
+}
 
+impl<I, O: Clone> Mock<I, O> {
     pub fn was_called_with(&self, input: I) -> Validator<I> {
-        let calls = self.calls.lock().unwrap();
-        let was_called = calls.iter().any(|value| value == &input);
-
-        Validator::new(self.calls.clone(), was_called, input)
+        Validator::new(self.calls.clone(), input)
     }
 }
 

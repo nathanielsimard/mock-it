@@ -1,7 +1,3 @@
-// TODO: Add Clone and PartialEq when implementing the Mock for Input Generics.
-// TODO: Add Clone when implementing the Mock for Output Generics.
-// TODO: Support generic in functions signatures.
-
 mod simple {
     use mock_it::{any, eq, mock_it};
 
@@ -116,7 +112,7 @@ mod with_lifetime {
 mod output_not_partial_eq {
     use mock_it::{any, eq, mock_it};
 
-    #[derive(Clone)]
+    #[derive(Clone, Debug)]
     pub struct Output;
 
     #[mock_it]

@@ -12,6 +12,11 @@ impl<I: std::fmt::Debug> std::fmt::Debug for Matcher<I> {
     }
 }
 
+pub trait MockCompare {
+    type Other;
+    fn eq(&self, other: &Self::Other) -> bool;
+}
+
 impl<I: PartialEq> PartialEq for Matcher<I> {
     fn eq(&self, other: &Matcher<I>) -> bool {
         use crate::matcher::Matcher::*;

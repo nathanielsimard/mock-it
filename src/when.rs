@@ -6,11 +6,13 @@ pub struct When<I, O> {
     rules: Arc<Mutex<Vec<Rule<I, O>>>>,
 }
 
-impl<I: PartialEq, O> When<I, O> {
+impl<I, O> When<I, O> {
     pub(crate) fn new(input: I, rules: Arc<Mutex<Vec<Rule<I, O>>>>) -> Self {
         When { input, rules }
     }
+}
 
+impl<I: PartialEq, O> When<I, O> {
     /// Use the when return value when the mock is called with the specified
     /// input
     pub fn will_return(self, value: O) {

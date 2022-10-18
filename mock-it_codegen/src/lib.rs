@@ -67,6 +67,12 @@ pub fn mock_it(
             #(#helper_functions)*
         }
 
+        impl #generics_impl Default for #mock_ident #generics_ty #generics_where {
+            fn default() -> Self {
+                #mock_ident::new()
+            }
+        }
+
         impl #generics_impl std::clone::Clone for #mock_ident #generics_ty #generics_where {
             fn clone(&self) -> Self {
                 #mock_ident {
